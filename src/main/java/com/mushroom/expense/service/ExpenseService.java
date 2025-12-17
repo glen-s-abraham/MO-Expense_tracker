@@ -11,19 +11,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-
-import org.springframework.beans.factory.annotation.Value;
 
 @Service
 @Transactional
@@ -31,14 +24,13 @@ public class ExpenseService {
 
     private final ExpenseRepository expenseRepository;
     private final ExpenseCommentRepository expenseCommentRepository;
+    private final FileStorageService fileStorageService;
 
-    // Upload directory
-    @Value("${app.upload.dir}")
-    private String UPLOAD_DIR;
-
-    public ExpenseService(ExpenseRepository expenseRepository, ExpenseCommentRepository expenseCommentRepository) {
+    public ExpenseService(ExpenseRepository expenseRepository, ExpenseCommentRepository expenseCommentRepository,
+            FileStorageService fileStorageService) {
         this.expenseRepository = expenseRepository;
         this.expenseCommentRepository = expenseCommentRepository;
+        this.fileStorageService = fileStorageService;
     }
 
     public List<Expense> findAllExpenses() {
@@ -97,7 +89,7 @@ public class ExpenseService {
 
         // Handle deletions
         if (deletePrimaryImage && expense.getReceiptImage() != null) {
-            deleteFile(expense.getReceiptImage());
+            fileStorageService.deleteFile(expense.getReceiptImage());
             expense.setReceiptImage(null);
         }
 
@@ -105,7 +97,7 @@ public class ExpenseService {
             List<com.mushroom.expense.entity.ExpenseAttachment> attachmentsToRemove = new java.util.ArrayList<>();
             for (com.mushroom.expense.entity.ExpenseAttachment attachment : expense.getAttachments()) {
                 if (deleteAttachmentIds.contains(attachment.getId())) {
-                    deleteFile(attachment.getFileName());
+                    fileStorageService.deleteFile(attachment.getFileName());
                     attachmentsToRemove.add(attachment);
                 }
             }
@@ -113,16 +105,9 @@ public class ExpenseService {
         }
 
         if (files != null && !files.isEmpty()) {
-            Path uploadPath = Paths.get(UPLOAD_DIR);
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
-            }
-
             for (MultipartFile file : files) {
                 if (!file.isEmpty()) {
-                    String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-                    Path filePath = uploadPath.resolve(fileName);
-                    Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+                    String fileName = fileStorageService.storeFile(file);
 
                     // For backward compatibility
                     if (expense.getReceiptImage() == null) {
@@ -172,29 +157,17 @@ public class ExpenseService {
 
             // Delete primary receipt image
             if (expense.getReceiptImage() != null) {
-                deleteFile(expense.getReceiptImage());
+                fileStorageService.deleteFile(expense.getReceiptImage());
             }
 
             // Delete all attachments
             if (expense.getAttachments() != null) {
                 for (com.mushroom.expense.entity.ExpenseAttachment attachment : expense.getAttachments()) {
-                    deleteFile(attachment.getFileName());
+                    fileStorageService.deleteFile(attachment.getFileName());
                 }
             }
 
             expenseRepository.deleteById(id);
-        }
-    }
-
-    private void deleteFile(String fileName) {
-        if (fileName != null && !fileName.isEmpty()) {
-            try {
-                Path filePath = Paths.get(UPLOAD_DIR).resolve(fileName);
-                Files.deleteIfExists(filePath);
-            } catch (IOException e) {
-                // Log the error but don't stop the process
-                System.err.println("Failed to delete file: " + fileName + ". Error: " + e.getMessage());
-            }
         }
     }
 }

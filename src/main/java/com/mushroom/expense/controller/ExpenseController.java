@@ -10,6 +10,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -124,6 +125,7 @@ public class ExpenseController {
     // --- Manager Actions ---
 
     @GetMapping("/expense/new")
+    @PreAuthorize("hasRole('MANAGER')")
     public String newExpenseForm(Model model) {
         model.addAttribute("expense", new Expense());
         model.addAttribute("categories", categoryService.findAllCategories());
@@ -132,6 +134,7 @@ public class ExpenseController {
     }
 
     @PostMapping("/expense")
+    @PreAuthorize("hasRole('MANAGER')")
     public String saveExpense(@ModelAttribute Expense expense,
             @RequestParam("receiptFiles") List<MultipartFile> files,
             @RequestParam(value = "deleteAttachmentIds", required = false) List<Long> deleteAttachmentIds,
@@ -162,6 +165,7 @@ public class ExpenseController {
     }
 
     @PostMapping("/expense/submit/{id}")
+    @PreAuthorize("hasRole('MANAGER')")
     public String submitExpense(@PathVariable Long id,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) LocalDate startDate,
@@ -174,6 +178,7 @@ public class ExpenseController {
     }
 
     @GetMapping("/expense/edit/{id}")
+    @PreAuthorize("hasRole('MANAGER')")
     public String editExpenseForm(@PathVariable Long id, Model model) {
         Expense expense = expenseService.findById(id).orElseThrow();
         model.addAttribute("expense", expense);
@@ -185,6 +190,7 @@ public class ExpenseController {
     }
 
     @GetMapping("/expense/delete/{id}")
+    @PreAuthorize("hasRole('MANAGER')")
     public String deleteExpense(@PathVariable Long id,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) LocalDate startDate,
@@ -199,6 +205,7 @@ public class ExpenseController {
     // --- Accountant Actions ---
 
     @PostMapping("/expense/approve/{id}")
+    @PreAuthorize("hasAnyRole('ACCOUNTANT', 'SUPERVISOR')")
     public String approveExpense(@PathVariable Long id,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) LocalDate startDate,
@@ -211,6 +218,7 @@ public class ExpenseController {
     }
 
     @PostMapping("/expense/reject/{id}")
+    @PreAuthorize("hasAnyRole('ACCOUNTANT', 'SUPERVISOR')")
     public String rejectExpense(@PathVariable Long id,
             @RequestParam(value = "message", required = false) String message,
             @AuthenticationPrincipal UserDetails userDetails,
@@ -229,6 +237,7 @@ public class ExpenseController {
     }
 
     @PostMapping("/expense/query/{id}")
+    @PreAuthorize("hasAnyRole('ACCOUNTANT', 'SUPERVISOR')")
     public String queryExpense(@PathVariable Long id,
             @RequestParam("message") String message,
             @AuthenticationPrincipal UserDetails userDetails,
