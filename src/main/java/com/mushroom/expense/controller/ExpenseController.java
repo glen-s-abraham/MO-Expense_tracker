@@ -10,6 +10,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
@@ -264,5 +265,54 @@ public class ExpenseController {
         model.addAttribute("expense", expense);
         model.addAttribute("comments", expenseService.getComments(id));
         return "expense_view";
+    }
+
+    @GetMapping("/expense/export")
+    public void exportExpenses(@AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) LocalDate startDate,
+            @RequestParam(required = false) LocalDate endDate,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(defaultValue = "date") String sortField,
+            @RequestParam(defaultValue = "DESC") String sortDir,
+            jakarta.servlet.http.HttpServletResponse response) throws IOException {
+
+        User user = userService.findByUsername(userDetails.getUsername()).orElseThrow();
+        String role = user.getRole();
+        Sort sort = sortDir.equalsIgnoreCase("ASC") ? Sort.by(sortField).ascending() : Sort.by(sortField).descending();
+        PageRequest pageable = PageRequest.of(0, Integer.MAX_VALUE, sort);
+
+        List<Expense> expenses;
+
+        if (role.equals("ROLE_MANAGER")) {
+            Page<Expense> page = expenseService.getExpenses(user, List.of(ExpenseStatus.values()), search, startDate,
+                    endDate, categoryId, pageable);
+            expenses = page.getContent();
+        } else if (role.equals("ROLE_ACCOUNTANT") || role.equals("ROLE_SUPERVISOR")) {
+            Page<Expense> page = expenseService.getExpenses(null,
+                    List.of(ExpenseStatus.SUBMITTED, ExpenseStatus.APPROVED, ExpenseStatus.REJECTED), search, startDate,
+                    endDate, categoryId, pageable);
+            expenses = page.getContent();
+        } else {
+            expenses = List.of();
+        }
+
+        response.setContentType("text/csv");
+        response.setHeader("Content-Disposition", "attachment; filename=\"expenses.csv\"");
+
+        try (java.io.PrintWriter writer = response.getWriter()) {
+            writer.println("ID,Date,Category,SubCategory,Amount,Status,Description,User");
+            for (Expense expense : expenses) {
+                writer.printf("%d,%s,%s,%s,%.2f,%s,\"%s\",%s%n",
+                        expense.getId(),
+                        expense.getDate(),
+                        expense.getCategory().getName(),
+                        expense.getSubCategory().getName(),
+                        expense.getAmount(),
+                        expense.getStatus(),
+                        expense.getDescription() != null ? expense.getDescription().replace("\"", "\"\"") : "",
+                        expense.getUser().getUsername());
+            }
+        }
     }
 }

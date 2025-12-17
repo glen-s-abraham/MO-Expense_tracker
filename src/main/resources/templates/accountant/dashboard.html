@@ -8,7 +8,7 @@
     <div class="card mb-4">
         <div class="card-body">
             <form th:action="@{/dashboard}" method="get" class="row g-3">
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <input type="text" class="form-control" name="search" placeholder="Search..." th:value="${search}">
                 </div>
                 <div class="col-md-2">
@@ -23,7 +23,7 @@
                         <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}" th:selected="${cat.id == categoryId}"></option>
                     </select>
                 </div>
-                <div class="col-md-3 d-flex gap-2">
+                <div class="col-md-4 d-flex gap-2">
                     <select class="form-select" name="sortField" style="width: auto;">
                         <option value="date" th:selected="${sortField == 'date'}">Date</option>
                         <option value="amount" th:selected="${sortField == 'amount'}">Amount</option>
@@ -33,6 +33,7 @@
                         <option value="ASC" th:selected="${sortDir == 'ASC'}">Asc</option>
                     </select>
                     <button type="submit" class="btn btn-primary"><i class="fas fa-filter"></i></button>
+                    <button type="submit" class="btn btn-success" formaction="/expense/export"><i class="fas fa-file-csv"></i></button>
                     <a href="/dashboard" class="btn btn-secondary"><i class="fas fa-sync"></i></a>
                 </div>
             </form>
