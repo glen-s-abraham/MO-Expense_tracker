@@ -96,12 +96,20 @@ public class ExpenseService {
         }
 
         // Handle deletions
-        if (deletePrimaryImage) {
+        if (deletePrimaryImage && expense.getReceiptImage() != null) {
+            deleteFile(expense.getReceiptImage());
             expense.setReceiptImage(null);
         }
 
         if (deleteAttachmentIds != null && !deleteAttachmentIds.isEmpty()) {
-            expense.getAttachments().removeIf(attachment -> deleteAttachmentIds.contains(attachment.getId()));
+            List<com.mushroom.expense.entity.ExpenseAttachment> attachmentsToRemove = new java.util.ArrayList<>();
+            for (com.mushroom.expense.entity.ExpenseAttachment attachment : expense.getAttachments()) {
+                if (deleteAttachmentIds.contains(attachment.getId())) {
+                    deleteFile(attachment.getFileName());
+                    attachmentsToRemove.add(attachment);
+                }
+            }
+            expense.getAttachments().removeAll(attachmentsToRemove);
         }
 
         if (files != null && !files.isEmpty()) {
@@ -158,6 +166,35 @@ public class ExpenseService {
     }
 
     public void deleteExpense(Long id) {
-        expenseRepository.deleteById(id);
+        Optional<Expense> expenseOptional = expenseRepository.findById(id);
+        if (expenseOptional.isPresent()) {
+            Expense expense = expenseOptional.get();
+
+            // Delete primary receipt image
+            if (expense.getReceiptImage() != null) {
+                deleteFile(expense.getReceiptImage());
+            }
+
+            // Delete all attachments
+            if (expense.getAttachments() != null) {
+                for (com.mushroom.expense.entity.ExpenseAttachment attachment : expense.getAttachments()) {
+                    deleteFile(attachment.getFileName());
+                }
+            }
+
+            expenseRepository.deleteById(id);
+        }
+    }
+
+    private void deleteFile(String fileName) {
+        if (fileName != null && !fileName.isEmpty()) {
+            try {
+                Path filePath = Paths.get(UPLOAD_DIR).resolve(fileName);
+                Files.deleteIfExists(filePath);
+            } catch (IOException e) {
+                // Log the error but don't stop the process
+                System.err.println("Failed to delete file: " + fileName + ". Error: " + e.getMessage());
+            }
+        }
     }
 }
