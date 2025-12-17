@@ -1,58 +1,63 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{layout :: head('User Form')}"></head>
-<body>
-<nav th:replace="~{layout :: navbar}"></nav>
 
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header bg-white">
-                    <h4 class="mb-0" th:text="${user.id == null ? 'New User' : 'Edit User'}">User Form</h4>
-                </div>
-                <div class="card-body">
-                    <form th:action="@{/admin/users}" th:object="${user}" method="post">
-                        <input type="hidden" th:field="*{id}">
-                        
-                        <div class="mb-3">
-                            <label for="username" class="form-label">Username</label>
-                            <input type="text" class="form-control" id="username" th:field="*{username}" required>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Password</label>
-                            <input type="text" class="form-control" id="password" th:field="*{password}" 
-                                   th:placeholder="${user.id != null ? 'Leave blank to keep unchanged' : 'Enter password'}"
-                                   th:required="${user.id == null}">
-                            <small class="text-muted" th:if="${user.id != null}">Enter new password only if you want to change it.</small>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="role" class="form-label">Role</label>
-                            <select class="form-select" id="role" th:field="*{role}" required>
-                                <option value="ROLE_ADMIN">Admin</option>
-                                <option value="ROLE_MANAGER">Farm Manager</option>
-                                <option value="ROLE_ACCOUNTANT">Accountant</option>
-                            </select>
-                        </div>
-                        
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" id="enabled" th:field="*{enabled}">
-                            <label class="form-check-label" for="enabled">Enabled</label>
-                        </div>
-                        
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary">Save User</button>
-                            <a href="/admin/users" class="btn btn-outline-secondary">Cancel</a>
-                        </div>
-                    </form>
+<head th:replace="~{layout :: head('User Form')}"></head>
+
+<body>
+    <nav th:replace="~{layout :: navbar}"></nav>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-white">
+                        <h4 class="mb-0" th:text="${user.id == null ? 'New User' : 'Edit User'}">User Form</h4>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/admin/users}" th:object="${user}" method="post">
+                            <input type="hidden" th:field="*{id}">
+
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Username</label>
+                                <input type="text" class="form-control" id="username" th:field="*{username}" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <input type="text" class="form-control" id="password" th:field="*{password}"
+                                    th:placeholder="${user.id != null ? 'Leave blank to keep unchanged' : 'Enter password'}"
+                                    th:required="${user.id == null}">
+                                <small class="text-muted" th:if="${user.id != null}">Enter new password only if you want
+                                    to change it.</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="role" class="form-label">Role</label>
+                                <select class="form-select" id="role" th:field="*{role}" required>
+                                    <option value="ROLE_ADMIN">Admin</option>
+                                    <option value="ROLE_MANAGER">Farm Manager</option>
+                                    <option value="ROLE_ACCOUNTANT">Accountant</option>
+                                    <option value="ROLE_SUPERVISOR">Supervisor</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="enabled" th:field="*{enabled}">
+                                <label class="form-check-label" for="enabled">Enabled</label>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary">Save User</button>
+                                <a href="/admin/users" class="btn btn-outline-secondary">Cancel</a>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<script th:replace="~{layout :: scripts}"></script>
+    <script th:replace="~{layout :: scripts}"></script>
 </body>
+
 </html>
