@@ -14,6 +14,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
 
 @Controller
@@ -36,47 +37,83 @@ public class ExpenseController {
             @RequestParam(defaultValue = "0") int approvedPage,
             @RequestParam(defaultValue = "0") int returnedPage,
             @RequestParam(defaultValue = "0") int rejectedPage,
-            @RequestParam(defaultValue = "0") int submittedPage) {
+            @RequestParam(defaultValue = "0") int submittedPage,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) LocalDate startDate,
+            @RequestParam(required = false) LocalDate endDate,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(defaultValue = "date") String sortField,
+            @RequestParam(defaultValue = "DESC") String sortDir) {
+
         User user = userService.findByUsername(userDetails.getUsername()).orElseThrow();
         String role = user.getRole();
         int pageSize = 5;
+        Sort sort = sortDir.equalsIgnoreCase("ASC") ? Sort.by(sortField).ascending() : Sort.by(sortField).descending();
+
+        // Add filter params to model for UI persistence
+        model.addAttribute("search", search);
+        model.addAttribute("startDate", startDate);
+        model.addAttribute("endDate", endDate);
+        model.addAttribute("categoryId", categoryId);
+        model.addAttribute("sortField", sortField);
+        model.addAttribute("sortDir", sortDir);
+        model.addAttribute("categories", categoryService.findAllCategories()); // For filter dropdown
 
         if (role.equals("ROLE_ADMIN")) {
             return "redirect:/admin/users";
         } else if (role.equals("ROLE_MANAGER")) {
             model.addAttribute("myDrafts",
-                    expenseService.findExpensesByUserAndStatusIn(user,
-                            List.of(ExpenseStatus.DRAFT, ExpenseStatus.QUERIES_RAISED),
-                            PageRequest.of(draftsPage, pageSize, Sort.by(Sort.Direction.DESC, "date"))));
-            model.addAttribute("pending", expenseService.findExpensesByUserAndStatus(user, ExpenseStatus.SUBMITTED,
-                    PageRequest.of(pendingPage, pageSize, Sort.by(Sort.Direction.DESC, "date"))));
-            model.addAttribute("approved", expenseService.findExpensesByUserAndStatus(user, ExpenseStatus.APPROVED,
-                    PageRequest.of(approvedPage, pageSize, Sort.by(Sort.Direction.DESC, "date"))));
+                    expenseService.getExpenses(user, List.of(ExpenseStatus.DRAFT, ExpenseStatus.QUERIES_RAISED), search,
+                            startDate, endDate, categoryId,
+                            PageRequest.of(draftsPage, pageSize, sort)));
+            model.addAttribute("pending",
+                    expenseService.getExpenses(user, List.of(ExpenseStatus.SUBMITTED), search, startDate, endDate,
+                            categoryId,
+                            PageRequest.of(pendingPage, pageSize, sort)));
+            model.addAttribute("approved",
+                    expenseService.getExpenses(user, List.of(ExpenseStatus.APPROVED), search, startDate, endDate,
+                            categoryId,
+                            PageRequest.of(approvedPage, pageSize, sort)));
             model.addAttribute("returned",
-                    expenseService.findExpensesByUserAndStatus(user, ExpenseStatus.QUERIES_RAISED,
-                            PageRequest.of(returnedPage, pageSize, Sort.by(Sort.Direction.DESC, "date"))));
-            model.addAttribute("rejected", expenseService.findExpensesByUserAndStatus(user, ExpenseStatus.REJECTED,
-                    PageRequest.of(rejectedPage, pageSize, Sort.by(Sort.Direction.DESC, "date"))));
+                    expenseService.getExpenses(user, List.of(ExpenseStatus.QUERIES_RAISED), search, startDate, endDate,
+                            categoryId,
+                            PageRequest.of(returnedPage, pageSize, sort)));
+            model.addAttribute("rejected",
+                    expenseService.getExpenses(user, List.of(ExpenseStatus.REJECTED), search, startDate, endDate,
+                            categoryId,
+                            PageRequest.of(rejectedPage, pageSize, sort)));
             return "manager/dashboard";
         } else if (role.equals("ROLE_ACCOUNTANT")) {
-            model.addAttribute("submittedExpenses", expenseService.findExpensesByStatus(ExpenseStatus.SUBMITTED,
-                    PageRequest.of(submittedPage, pageSize, Sort.by(Sort.Direction.ASC, "date"))));
-            model.addAttribute("approvedExpenses", expenseService.findExpensesByStatus(ExpenseStatus.APPROVED,
-                    PageRequest.of(approvedPage, pageSize, Sort.by(Sort.Direction.DESC, "date"))));
-            model.addAttribute("rejectedExpenses", expenseService.findExpensesByStatus(ExpenseStatus.REJECTED,
-                    PageRequest.of(rejectedPage, pageSize, Sort.by(Sort.Direction.DESC, "date"))));
+            model.addAttribute("submittedExpenses",
+                    expenseService.getExpenses(null, List.of(ExpenseStatus.SUBMITTED), search, startDate, endDate,
+                            categoryId,
+                            PageRequest.of(submittedPage, pageSize, sort)));
+            model.addAttribute("approvedExpenses",
+                    expenseService.getExpenses(null, List.of(ExpenseStatus.APPROVED), search, startDate, endDate,
+                            categoryId,
+                            PageRequest.of(approvedPage, pageSize, sort)));
+            model.addAttribute("rejectedExpenses",
+                    expenseService.getExpenses(null, List.of(ExpenseStatus.REJECTED), search, startDate, endDate,
+                            categoryId,
+                            PageRequest.of(rejectedPage, pageSize, sort)));
             return "accountant/dashboard";
         } else if (role.equals("ROLE_SUPERVISOR")) {
             model.addAttribute("myDrafts",
-                    expenseService.findExpensesByUserAndStatusIn(user,
-                            List.of(ExpenseStatus.DRAFT, ExpenseStatus.QUERIES_RAISED),
-                            PageRequest.of(draftsPage, pageSize, Sort.by(Sort.Direction.DESC, "date"))));
-            model.addAttribute("submittedExpenses", expenseService.findExpensesByStatus(ExpenseStatus.SUBMITTED,
-                    PageRequest.of(submittedPage, pageSize, Sort.by(Sort.Direction.DESC, "date"))));
-            model.addAttribute("approvedExpenses", expenseService.findExpensesByStatus(ExpenseStatus.APPROVED,
-                    PageRequest.of(approvedPage, pageSize, Sort.by(Sort.Direction.DESC, "date"))));
-            model.addAttribute("rejectedExpenses", expenseService.findExpensesByStatus(ExpenseStatus.REJECTED,
-                    PageRequest.of(rejectedPage, pageSize, Sort.by(Sort.Direction.DESC, "date"))));
+                    expenseService.getExpenses(user, List.of(ExpenseStatus.DRAFT, ExpenseStatus.QUERIES_RAISED), search,
+                            startDate, endDate, categoryId,
+                            PageRequest.of(draftsPage, pageSize, sort)));
+            model.addAttribute("submittedExpenses",
+                    expenseService.getExpenses(null, List.of(ExpenseStatus.SUBMITTED), search, startDate, endDate,
+                            categoryId,
+                            PageRequest.of(submittedPage, pageSize, sort)));
+            model.addAttribute("approvedExpenses",
+                    expenseService.getExpenses(null, List.of(ExpenseStatus.APPROVED), search, startDate, endDate,
+                            categoryId,
+                            PageRequest.of(approvedPage, pageSize, sort)));
+            model.addAttribute("rejectedExpenses",
+                    expenseService.getExpenses(null, List.of(ExpenseStatus.REJECTED), search, startDate, endDate,
+                            categoryId,
+                            PageRequest.of(rejectedPage, pageSize, sort)));
             return "supervisor/dashboard";
         }
 

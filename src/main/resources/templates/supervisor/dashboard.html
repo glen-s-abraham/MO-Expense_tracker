@@ -5,6 +5,40 @@
 <nav th:replace="~{layout :: navbar}"></nav>
 
 <div class="container">
+    <div class="card mb-4">
+        <div class="card-body">
+            <form th:action="@{/dashboard}" method="get" class="row g-3">
+                <div class="col-md-3">
+                    <input type="text" class="form-control" name="search" placeholder="Search..." th:value="${search}">
+                </div>
+                <div class="col-md-2">
+                    <input type="date" class="form-control" name="startDate" th:value="${startDate}">
+                </div>
+                <div class="col-md-2">
+                    <input type="date" class="form-control" name="endDate" th:value="${endDate}">
+                </div>
+                <div class="col-md-2">
+                    <select class="form-select" name="categoryId">
+                        <option value="">All Categories</option>
+                        <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}" th:selected="${cat.id == categoryId}"></option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex gap-2">
+                    <select class="form-select" name="sortField" style="width: auto;">
+                        <option value="date" th:selected="${sortField == 'date'}">Date</option>
+                        <option value="amount" th:selected="${sortField == 'amount'}">Amount</option>
+                    </select>
+                    <select class="form-select" name="sortDir" style="width: auto;">
+                        <option value="DESC" th:selected="${sortDir == 'DESC'}">Desc</option>
+                        <option value="ASC" th:selected="${sortDir == 'ASC'}">Asc</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-filter"></i></button>
+                    <a href="/dashboard" class="btn btn-secondary"><i class="fas fa-sync"></i></a>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="d-flex justify-content-between align-items-center mb-4">
         <ul class="nav nav-tabs" id="supervisorTab" role="tablist">
             <li class="nav-item" role="presentation">
@@ -72,14 +106,14 @@
                     <nav th:if="${myDrafts.totalPages > 1}" aria-label="Page navigation">
                         <ul class="pagination justify-content-center">
                             <li class="page-item" th:classappend="${myDrafts.first} ? 'disabled'">
-                                <a class="page-link" th:href="@{/dashboard(draftsPage=${myDrafts.number - 1})}">Previous</a>
+                                <a class="page-link" th:href="@{/dashboard(draftsPage=${myDrafts.number - 1}, search=${search}, startDate=${startDate}, endDate=${endDate}, categoryId=${categoryId}, sortField=${sortField}, sortDir=${sortDir})}">Previous</a>
                             </li>
                             <li class="page-item" th:each="i : ${#numbers.sequence(0, myDrafts.totalPages - 1)}"
                                 th:classappend="${myDrafts.number == i} ? 'active'">
-                                <a class="page-link" th:href="@{/dashboard(draftsPage=${i})}" th:text="${i + 1}">1</a>
+                                <a class="page-link" th:href="@{/dashboard(draftsPage=${i}, search=${search}, startDate=${startDate}, endDate=${endDate}, categoryId=${categoryId}, sortField=${sortField}, sortDir=${sortDir})}" th:text="${i + 1}">1</a>
                             </li>
                             <li class="page-item" th:classappend="${myDrafts.last} ? 'disabled'">
-                                <a class="page-link" th:href="@{/dashboard(draftsPage=${myDrafts.number + 1})}">Next</a>
+                                <a class="page-link" th:href="@{/dashboard(draftsPage=${myDrafts.number + 1}, search=${search}, startDate=${startDate}, endDate=${endDate}, categoryId=${categoryId}, sortField=${sortField}, sortDir=${sortDir})}">Next</a>
                             </li>
                         </ul>
                     </nav>
@@ -155,14 +189,14 @@
                     <nav th:if="${submittedExpenses.totalPages > 1}" aria-label="Page navigation">
                         <ul class="pagination justify-content-center">
                             <li class="page-item" th:classappend="${submittedExpenses.first} ? 'disabled'">
-                                <a class="page-link" th:href="@{/dashboard(submittedPage=${submittedExpenses.number - 1})}">Previous</a>
+                                <a class="page-link" th:href="@{/dashboard(submittedPage=${submittedExpenses.number - 1}, search=${search}, startDate=${startDate}, endDate=${endDate}, categoryId=${categoryId}, sortField=${sortField}, sortDir=${sortDir})}">Previous</a>
                             </li>
                             <li class="page-item" th:each="i : ${#numbers.sequence(0, submittedExpenses.totalPages - 1)}"
                                 th:classappend="${submittedExpenses.number == i} ? 'active'">
-                                <a class="page-link" th:href="@{/dashboard(submittedPage=${i})}" th:text="${i + 1}">1</a>
+                                <a class="page-link" th:href="@{/dashboard(submittedPage=${i}, search=${search}, startDate=${startDate}, endDate=${endDate}, categoryId=${categoryId}, sortField=${sortField}, sortDir=${sortDir})}" th:text="${i + 1}">1</a>
                             </li>
                             <li class="page-item" th:classappend="${submittedExpenses.last} ? 'disabled'">
-                                <a class="page-link" th:href="@{/dashboard(submittedPage=${submittedExpenses.number + 1})}">Next</a>
+                                <a class="page-link" th:href="@{/dashboard(submittedPage=${submittedExpenses.number + 1}, search=${search}, startDate=${startDate}, endDate=${endDate}, categoryId=${categoryId}, sortField=${sortField}, sortDir=${sortDir})}">Next</a>
                             </li>
                         </ul>
                     </nav>
@@ -238,14 +272,14 @@
                     <nav th:if="${approvedExpenses.totalPages > 1}" aria-label="Page navigation">
                         <ul class="pagination justify-content-center">
                             <li class="page-item" th:classappend="${approvedExpenses.first} ? 'disabled'">
-                                <a class="page-link" th:href="@{/dashboard(approvedPage=${approvedExpenses.number - 1})}">Previous</a>
+                                <a class="page-link" th:href="@{/dashboard(approvedPage=${approvedExpenses.number - 1}, search=${search}, startDate=${startDate}, endDate=${endDate}, categoryId=${categoryId}, sortField=${sortField}, sortDir=${sortDir})}">Previous</a>
                             </li>
                             <li class="page-item" th:each="i : ${#numbers.sequence(0, approvedExpenses.totalPages - 1)}"
                                 th:classappend="${approvedExpenses.number == i} ? 'active'">
-                                <a class="page-link" th:href="@{/dashboard(approvedPage=${i})}" th:text="${i + 1}">1</a>
+                                <a class="page-link" th:href="@{/dashboard(approvedPage=${i}, search=${search}, startDate=${startDate}, endDate=${endDate}, categoryId=${categoryId}, sortField=${sortField}, sortDir=${sortDir})}" th:text="${i + 1}">1</a>
                             </li>
                             <li class="page-item" th:classappend="${approvedExpenses.last} ? 'disabled'">
-                                <a class="page-link" th:href="@{/dashboard(approvedPage=${approvedExpenses.number + 1})}">Next</a>
+                                <a class="page-link" th:href="@{/dashboard(approvedPage=${approvedExpenses.number + 1}, search=${search}, startDate=${startDate}, endDate=${endDate}, categoryId=${categoryId}, sortField=${sortField}, sortDir=${sortDir})}">Next</a>
                             </li>
                         </ul>
                     </nav>
@@ -321,14 +355,14 @@
                     <nav th:if="${rejectedExpenses.totalPages > 1}" aria-label="Page navigation">
                         <ul class="pagination justify-content-center">
                             <li class="page-item" th:classappend="${rejectedExpenses.first} ? 'disabled'">
-                                <a class="page-link" th:href="@{/dashboard(rejectedPage=${rejectedExpenses.number - 1})}">Previous</a>
+                                <a class="page-link" th:href="@{/dashboard(rejectedPage=${rejectedExpenses.number - 1}, search=${search}, startDate=${startDate}, endDate=${endDate}, categoryId=${categoryId}, sortField=${sortField}, sortDir=${sortDir})}">Previous</a>
                             </li>
                             <li class="page-item" th:each="i : ${#numbers.sequence(0, rejectedExpenses.totalPages - 1)}"
                                 th:classappend="${rejectedExpenses.number == i} ? 'active'">
-                                <a class="page-link" th:href="@{/dashboard(rejectedPage=${i})}" th:text="${i + 1}">1</a>
+                                <a class="page-link" th:href="@{/dashboard(rejectedPage=${i}, search=${search}, startDate=${startDate}, endDate=${endDate}, categoryId=${categoryId}, sortField=${sortField}, sortDir=${sortDir})}" th:text="${i + 1}">1</a>
                             </li>
                             <li class="page-item" th:classappend="${rejectedExpenses.last} ? 'disabled'">
-                                <a class="page-link" th:href="@{/dashboard(rejectedPage=${rejectedExpenses.number + 1})}">Next</a>
+                                <a class="page-link" th:href="@{/dashboard(rejectedPage=${rejectedExpenses.number + 1}, search=${search}, startDate=${startDate}, endDate=${endDate}, categoryId=${categoryId}, sortField=${sortField}, sortDir=${sortDir})}">Next</a>
                             </li>
                         </ul>
                     </nav>

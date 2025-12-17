@@ -73,6 +73,13 @@ public class ExpenseService {
         return expenseRepository.findByStatus(status, pageable);
     }
 
+    public Page<Expense> getExpenses(User user, List<ExpenseStatus> statuses, String keyword,
+            LocalDate startDate, LocalDate endDate, Long categoryId, Pageable pageable) {
+        org.springframework.data.jpa.domain.Specification<Expense> spec = com.mushroom.expense.specification.ExpenseSpecification
+                .filterExpenses(user, statuses, keyword, startDate, endDate, categoryId);
+        return expenseRepository.findAll(spec, pageable);
+    }
+
     public Optional<Expense> findById(Long id) {
         return expenseRepository.findById(id);
     }
