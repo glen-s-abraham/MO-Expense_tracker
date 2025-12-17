@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head('Manage Categories')}"></head>
+<body>
+<nav th:replace="~{layout :: navbar}"></nav>
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Manage Categories</h2>
+        <a href="/admin/categories/new" class="btn btn-primary"><i class="fas fa-plus"></i> New Category</a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="category : ${categories}">
+                        <td th:text="${category.id}">1</td>
+                        <td th:text="${category.name}">Raw Materials</td>
+                        <td>
+                            <a th:href="@{/admin/categories/edit/{id}(id=${category.id})}" class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></a>
+                            <a th:href="@{/admin/categories/delete/{id}(id=${category.id})}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure?')"><i class="fas fa-trash"></i></a>
+                            <a th:href="@{/admin/subcategories(categoryId=${category.id})}" class="btn btn-sm btn-outline-info"><i class="fas fa-list"></i> Subcategories</a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:replace="~{layout :: scripts}"></script>
+</body>
+</html>

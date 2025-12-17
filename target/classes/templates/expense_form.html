@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head('Expense Form')}"></head>
+<body>
+<nav th:replace="~{layout :: navbar}"></nav>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h4 class="mb-0" th:text="${expense.id == null ? 'New Expense' : 'Edit Expense'}">Expense Form</h4>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/expense}" th:object="${expense}" method="post" enctype="multipart/form-data">
+                        <input type="hidden" th:field="*{id}">
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="category" class="form-label">Category</label>
+                                <select class="form-select" id="category" th:field="*{category}" 
+                                        hx-get="/api/subcategories" 
+                                        hx-target="#subCategory" 
+                                        hx-trigger="change"
+                                        name="category"
+                                        required>
+                                    <option value="">Select Category</option>
+                                    <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="subCategory" class="form-label">SubCategory</label>
+                                <select class="form-select" id="subCategory" th:field="*{subCategory}" required>
+                                    <option value="">Select Category First</option>
+                                    <option th:if="${subCategories != null}" 
+                                            th:each="sub : ${subCategories}" 
+                                            th:value="${sub.id}" 
+                                            th:text="${sub.name}"></option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <input type="text" class="form-control" id="description" th:field="*{description}" required>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="amount" class="form-label">Amount</label>
+                                <input type="number" step="0.01" class="form-control" id="amount" th:field="*{amount}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="date" class="form-label">Date</label>
+                                <input type="date" class="form-control" id="date" name="date" th:value="${#temporals.format(expense.date, 'yyyy-MM-dd')}" required>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="paymentMode" class="form-label">Payment Mode</label>
+                                <select class="form-select" id="paymentMode" th:field="*{paymentMode}" required>
+                                    <option th:each="mode : ${paymentModes}" th:value="${mode}" th:text="${mode}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="taxPercentage" class="form-label">Tax % (Optional)</label>
+                                <input type="number" step="0.01" class="form-control" id="taxPercentage" th:field="*{taxPercentage}">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="batchId" class="form-label">Batch ID (Optional)</label>
+                            <input type="text" class="form-control" id="batchId" th:field="*{batchId}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Receipt Images</label>
+                            <div class="d-flex gap-2 mb-2">
+                                <button type="button" class="btn btn-outline-primary flex-grow-1" onclick="openInput('galleryInput', 'cameraInput')">
+                                    <i class="fas fa-images"></i> Gallery
+                                </button>
+                                <button type="button" class="btn btn-outline-success flex-grow-1" onclick="openInput('cameraInput', 'galleryInput')">
+                                    <i class="fas fa-camera"></i> Camera
+                                </button>
+                            </div>
+                            
+                            <input type="file" id="galleryInput" name="receiptFiles" accept="image/*" multiple class="d-none" onchange="handleFileSelect(this, 'cameraInput')">
+                            <input type="file" id="cameraInput" name="receiptFiles" accept="image/*" capture="environment" class="d-none" onchange="handleFileSelect(this, 'galleryInput')">
+                            
+                            <div id="fileNameDisplay" class="form-text text-success fw-bold" style="display:none;"></div>
+                            
+                            <!-- Existing Files Display -->
+                            <div class="mt-2">
+                                <div th:if="${expense.receiptImage != null}" class="d-flex align-items-center justify-content-between border p-2 mb-2 rounded" id="primaryImageContainer">
+                                    <div>
+                                        <small class="text-muted d-block">Primary Receipt</small>
+                                        <a th:href="@{'/uploads/' + ${expense.receiptImage}}" target="_blank" th:text="${expense.receiptImage}">filename.jpg</a>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="markPrimaryForDeletion()">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    <input type="hidden" name="deletePrimaryImage" id="deletePrimaryImage" value="false">
+                                </div>
+
+                                <div th:each="att : ${expense.attachments}" class="d-flex align-items-center justify-content-between border p-2 mb-2 rounded" th:id="'attachment-' + ${att.id}">
+                                    <div>
+                                        <small class="text-muted d-block">Attachment</small>
+                                        <a th:href="@{'/uploads/' + ${att.fileName}}" target="_blank" th:text="${att.fileName}">filename.jpg</a>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" th:onclick="'markAttachmentForDeletion(' + ${att.id} + ')'">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                                <div id="deletedAttachmentsContainer"></div>
+                            </div>
+                        </div>
+
+                        <script>
+                            function openInput(inputId, otherInputId) {
+                                const input = document.getElementById(inputId);
+                                input.disabled = false; // Ensure enabled before clicking
+                                input.click();
+                            }
+
+                            function handleFileSelect(input, otherInputId) {
+                                if (input.files && input.files.length > 0) {
+                                    // Disable the other input so it doesn't submit
+                                    const other = document.getElementById(otherInputId);
+                                    other.value = '';
+                                    other.disabled = true;
+                                    
+                                    // Show filename count
+                                    const display = document.getElementById('fileNameDisplay');
+                                    if (input.files.length === 1) {
+                                        display.textContent = 'Selected: ' + input.files[0].name;
+                                    } else {
+                                        display.textContent = 'Selected: ' + input.files.length + ' files';
+                                    }
+                                    display.style.display = 'block';
+                                }
+                            }
+
+                            function markPrimaryForDeletion() {
+                                document.getElementById('deletePrimaryImage').value = 'true';
+                                document.getElementById('primaryImageContainer').style.display = 'none';
+                            }
+
+                            function markAttachmentForDeletion(id) {
+                                const container = document.getElementById('deletedAttachmentsContainer');
+                                const input = document.createElement('input');
+                                input.type = 'hidden';
+                                input.name = 'deleteAttachmentIds';
+                                input.value = id;
+                                container.appendChild(input);
+                                
+                                document.getElementById('attachment-' + id).style.display = 'none';
+                            }
+                        </script>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Save Draft</button>
+                            <a href="/dashboard" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:replace="~{layout :: scripts}"></script>
+<script th:replace="~{layout :: htmx}"></script>
+</body>
+</html>

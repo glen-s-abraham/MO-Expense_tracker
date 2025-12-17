@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head('Supervisor Dashboard')}"></head>
+<body>
+<nav th:replace="~{layout :: navbar}"></nav>
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <ul class="nav nav-tabs" id="supervisorTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="drafts-tab" data-bs-toggle="tab" data-bs-target="#drafts" type="button" role="tab">
+                    My Drafts <span class="badge bg-secondary ms-1" th:text="${myDrafts.totalElements}">0</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="submitted-tab" data-bs-toggle="tab" data-bs-target="#submitted" type="button" role="tab">
+                    All Submitted 
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="approved-tab" data-bs-toggle="tab" data-bs-target="#approved" type="button" role="tab">All Approved</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="rejected-tab" data-bs-toggle="tab" data-bs-target="#rejected" type="button" role="tab">
+                    All Rejected 
+                </button>
+            </li>
+        </ul>
+        <a href="/expense/new" class="btn btn-primary"><i class="fas fa-plus"></i> Add Expense</a>
+    </div>
+
+    <div class="tab-content" id="supervisorTabContent">
+        <!-- Drafts -->
+        <div class="tab-pane fade show active" id="drafts" role="tabpanel">
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Category</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="expense : ${myDrafts}">
+                                <td th:text="${expense.date}">2023-10-27</td>
+                                <td th:text="${expense.category.name + ' - ' + expense.subCategory.name}">Category</td>
+                                <td th:text="${expense.amount}">100.00</td>
+                                <td>
+                                    <span th:if="${expense.status.name() == 'DRAFT'}" class="badge bg-secondary">Draft</span>
+                                    <span th:if="${expense.status.name() == 'QUERIES_RAISED'}" class="badge bg-warning text-dark">Query Raised</span>
+                                </td>
+                                <td>
+                                    <a th:href="@{/expense/edit/{id}(id=${expense.id})}" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i> Edit</a>
+                                    <a th:href="@{/expense/delete/{id}(id=${expense.id})}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')"><i class="fas fa-trash"></i></a>
+                                    <form th:action="@{/expense/submit/{id}(id=${expense.id})}" method="post" style="display:inline;">
+                                        <button type="submit" class="btn btn-sm btn-success"><i class="fas fa-paper-plane"></i> Submit</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <tr th:if="${myDrafts.empty}">
+                                <td colspan="5" class="text-center text-muted">No drafts found.</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Pagination -->
+                    <nav th:if="${myDrafts.totalPages > 1}" aria-label="Page navigation">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item" th:classappend="${myDrafts.first} ? 'disabled'">
+                                <a class="page-link" th:href="@{/dashboard(draftsPage=${myDrafts.number - 1})}">Previous</a>
+                            </li>
+                            <li class="page-item" th:each="i : ${#numbers.sequence(0, myDrafts.totalPages - 1)}"
+                                th:classappend="${myDrafts.number == i} ? 'active'">
+                                <a class="page-link" th:href="@{/dashboard(draftsPage=${i})}" th:text="${i + 1}">1</a>
+                            </li>
+                            <li class="page-item" th:classappend="${myDrafts.last} ? 'disabled'">
+                                <a class="page-link" th:href="@{/dashboard(draftsPage=${myDrafts.number + 1})}">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submitted -->
+        <div class="tab-pane fade" id="submitted" role="tabpanel">
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>User</th>
+                                <th>Category</th>
+                                <th>Amount</th>
+                                <th>Receipt</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="expense : ${submittedExpenses}">
+                                <td th:text="${expense.date}">2023-10-27</td>
+                                <td th:text="${expense.user.username}">manager1</td>
+                                <td th:text="${expense.category.name + ' - ' + expense.subCategory.name}">Category</td>
+                                <td th:text="${expense.amount}">100.00</td>
+                                <td>
+                                    <button th:if="${expense.receiptImage != null or !expense.attachments.empty}" 
+                                            type="button" 
+                                            class="btn btn-sm btn-outline-secondary" 
+                                            data-bs-toggle="modal" 
+                                            th:data-bs-target="'#submittedImageModal' + ${expense.id}">
+                                        <i class="fas fa-images"></i> View
+                                    </button>
+                                    <span th:unless="${expense.receiptImage != null or !expense.attachments.empty}" class="text-muted">No Receipt</span>
+
+                                    <!-- Image Modal -->
+                                    <div class="modal fade" th:id="'submittedImageModal' + ${expense.id}" tabindex="-1" aria-hidden="true" th:if="${expense.receiptImage != null or !expense.attachments.empty}">
+                                        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Receipts</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body text-center">
+                                                    <div class="d-flex flex-column gap-3">
+                                                        <img th:if="${expense.receiptImage != null}" th:src="@{'/uploads/' + ${expense.receiptImage}}" class="img-fluid" alt="Primary Receipt">
+                                                        <img th:each="att : ${expense.attachments}" 
+                                                             th:if="${att.fileName != expense.receiptImage}"
+                                                             th:src="@{'/uploads/' + ${att.fileName}}" class="img-fluid" alt="Attachment">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-primary">Submitted</span></td>
+                                <td>
+                                    <a th:href="@{/expense/view/{id}(id=${expense.id})}" class="btn btn-sm btn-outline-info"><i class="fas fa-eye"></i> Details</a>
+                                </td>
+                            </tr>
+                            <tr th:if="${submittedExpenses.empty}">
+                                <td colspan="7" class="text-center text-muted">No submitted expenses found.</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Pagination -->
+                    <nav th:if="${submittedExpenses.totalPages > 1}" aria-label="Page navigation">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item" th:classappend="${submittedExpenses.first} ? 'disabled'">
+                                <a class="page-link" th:href="@{/dashboard(submittedPage=${submittedExpenses.number - 1})}">Previous</a>
+                            </li>
+                            <li class="page-item" th:each="i : ${#numbers.sequence(0, submittedExpenses.totalPages - 1)}"
+                                th:classappend="${submittedExpenses.number == i} ? 'active'">
+                                <a class="page-link" th:href="@{/dashboard(submittedPage=${i})}" th:text="${i + 1}">1</a>
+                            </li>
+                            <li class="page-item" th:classappend="${submittedExpenses.last} ? 'disabled'">
+                                <a class="page-link" th:href="@{/dashboard(submittedPage=${submittedExpenses.number + 1})}">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+
+        <!-- Approved -->
+        <div class="tab-pane fade" id="approved" role="tabpanel">
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>User</th>
+                                <th>Category</th>
+                                <th>Amount</th>
+                                <th>Receipt</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="expense : ${approvedExpenses}">
+                                <td th:text="${expense.date}">2023-10-27</td>
+                                <td th:text="${expense.user.username}">manager1</td>
+                                <td th:text="${expense.category.name + ' - ' + expense.subCategory.name}">Category</td>
+                                <td th:text="${expense.amount}">100.00</td>
+                                <td>
+                                    <button th:if="${expense.receiptImage != null or !expense.attachments.empty}" 
+                                            type="button" 
+                                            class="btn btn-sm btn-outline-secondary" 
+                                            data-bs-toggle="modal" 
+                                            th:data-bs-target="'#approvedImageModal' + ${expense.id}">
+                                        <i class="fas fa-images"></i> View
+                                    </button>
+                                    <span th:unless="${expense.receiptImage != null or !expense.attachments.empty}" class="text-muted">No Receipt</span>
+
+                                    <!-- Image Modal -->
+                                    <div class="modal fade" th:id="'approvedImageModal' + ${expense.id}" tabindex="-1" aria-hidden="true" th:if="${expense.receiptImage != null or !expense.attachments.empty}">
+                                        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Receipts</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body text-center">
+                                                    <div class="d-flex flex-column gap-3">
+                                                        <img th:if="${expense.receiptImage != null}" th:src="@{'/uploads/' + ${expense.receiptImage}}" class="img-fluid" alt="Primary Receipt">
+                                                        <img th:each="att : ${expense.attachments}" 
+                                                             th:if="${att.fileName != expense.receiptImage}"
+                                                             th:src="@{'/uploads/' + ${att.fileName}}" class="img-fluid" alt="Attachment">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-success">Approved</span></td>
+                                <td>
+                                    <a th:href="@{/expense/view/{id}(id=${expense.id})}" class="btn btn-sm btn-outline-info"><i class="fas fa-eye"></i> Details</a>
+                                </td>
+                            </tr>
+                            <tr th:if="${approvedExpenses.empty}">
+                                <td colspan="7" class="text-center text-muted">No approved expenses found.</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Pagination -->
+                    <nav th:if="${approvedExpenses.totalPages > 1}" aria-label="Page navigation">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item" th:classappend="${approvedExpenses.first} ? 'disabled'">
+                                <a class="page-link" th:href="@{/dashboard(approvedPage=${approvedExpenses.number - 1})}">Previous</a>
+                            </li>
+                            <li class="page-item" th:each="i : ${#numbers.sequence(0, approvedExpenses.totalPages - 1)}"
+                                th:classappend="${approvedExpenses.number == i} ? 'active'">
+                                <a class="page-link" th:href="@{/dashboard(approvedPage=${i})}" th:text="${i + 1}">1</a>
+                            </li>
+                            <li class="page-item" th:classappend="${approvedExpenses.last} ? 'disabled'">
+                                <a class="page-link" th:href="@{/dashboard(approvedPage=${approvedExpenses.number + 1})}">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rejected -->
+        <div class="tab-pane fade" id="rejected" role="tabpanel">
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>User</th>
+                                <th>Category</th>
+                                <th>Amount</th>
+                                <th>Receipt</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="expense : ${rejectedExpenses}">
+                                <td th:text="${expense.date}">2023-10-27</td>
+                                <td th:text="${expense.user.username}">manager1</td>
+                                <td th:text="${expense.category.name + ' - ' + expense.subCategory.name}">Category</td>
+                                <td th:text="${expense.amount}">100.00</td>
+                                <td>
+                                    <button th:if="${expense.receiptImage != null or !expense.attachments.empty}" 
+                                            type="button" 
+                                            class="btn btn-sm btn-outline-secondary" 
+                                            data-bs-toggle="modal" 
+                                            th:data-bs-target="'#rejectedImageModal' + ${expense.id}">
+                                        <i class="fas fa-images"></i> View
+                                    </button>
+                                    <span th:unless="${expense.receiptImage != null or !expense.attachments.empty}" class="text-muted">No Receipt</span>
+
+                                    <!-- Image Modal -->
+                                    <div class="modal fade" th:id="'rejectedImageModal' + ${expense.id}" tabindex="-1" aria-hidden="true" th:if="${expense.receiptImage != null or !expense.attachments.empty}">
+                                        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Receipts</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body text-center">
+                                                    <div class="d-flex flex-column gap-3">
+                                                        <img th:if="${expense.receiptImage != null}" th:src="@{'/uploads/' + ${expense.receiptImage}}" class="img-fluid" alt="Primary Receipt">
+                                                        <img th:each="att : ${expense.attachments}" 
+                                                             th:if="${att.fileName != expense.receiptImage}"
+                                                             th:src="@{'/uploads/' + ${att.fileName}}" class="img-fluid" alt="Attachment">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-danger">Rejected</span></td>
+                                <td>
+                                    <a th:href="@{/expense/view/{id}(id=${expense.id})}" class="btn btn-sm btn-outline-info"><i class="fas fa-eye"></i> Details</a>
+                                </td>
+                            </tr>
+                            <tr th:if="${rejectedExpenses.empty}">
+                                <td colspan="7" class="text-center text-muted">No rejected expenses found.</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Pagination -->
+                    <nav th:if="${rejectedExpenses.totalPages > 1}" aria-label="Page navigation">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item" th:classappend="${rejectedExpenses.first} ? 'disabled'">
+                                <a class="page-link" th:href="@{/dashboard(rejectedPage=${rejectedExpenses.number - 1})}">Previous</a>
+                            </li>
+                            <li class="page-item" th:each="i : ${#numbers.sequence(0, rejectedExpenses.totalPages - 1)}"
+                                th:classappend="${rejectedExpenses.number == i} ? 'active'">
+                                <a class="page-link" th:href="@{/dashboard(rejectedPage=${i})}" th:text="${i + 1}">1</a>
+                            </li>
+                            <li class="page-item" th:classappend="${rejectedExpenses.last} ? 'disabled'">
+                                <a class="page-link" th:href="@{/dashboard(rejectedPage=${rejectedExpenses.number + 1})}">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Restore active tab
+        var activeTab = localStorage.getItem('activeTab_supervisor');
+        if (activeTab) {
+            var tabTrigger = document.querySelector('button[data-bs-target="' + activeTab + '"]');
+            if (tabTrigger) {
+                var tab = new bootstrap.Tab(tabTrigger);
+                tab.show();
+            }
+        }
+
+        // Save active tab on click
+        var tabEls = document.querySelectorAll('button[data-bs-toggle="tab"]');
+        tabEls.forEach(function(tabEl) {
+            tabEl.addEventListener('shown.bs.tab', function (event) {
+                localStorage.setItem('activeTab_supervisor', event.target.getAttribute('data-bs-target'));
+            })
+        });
+    });
+</script>
+<script th:replace="~{layout :: scripts}"></script>
+</body>
+</html>

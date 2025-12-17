@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head('Manage SubCategories')}"></head>
+<body>
+<nav th:replace="~{layout :: navbar}"></nav>
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Manage SubCategories</h2>
+        <a href="/admin/subcategories/new" class="btn btn-primary"><i class="fas fa-plus"></i> New SubCategory</a>
+    </div>
+    
+    <form action="/admin/subcategories" method="get" class="mb-4">
+        <div class="input-group">
+            <select name="categoryId" class="form-select" onchange="this.form.submit()">
+                <option value="">Select Category to Filter</option>
+                <option th:each="cat : ${categories}" 
+                        th:value="${cat.id}" 
+                        th:text="${cat.name}"
+                        th:selected="${cat.id == selectedCategoryId}"></option>
+            </select>
+            <button class="btn btn-outline-secondary" type="submit">Filter</button>
+        </div>
+    </form>
+
+    <div class="card" th:if="${subCategories != null}">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="sub : ${subCategories}">
+                        <td th:text="${sub.id}">1</td>
+                        <td th:text="${sub.name}">Seeds</td>
+                        <td th:text="${sub.category.name}">Raw Materials</td>
+                        <td>
+                            <a th:href="@{/admin/subcategories/edit/{id}(id=${sub.id})}" class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></a>
+                            <a th:href="@{/admin/subcategories/delete/{id}(id=${sub.id})}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure?')"><i class="fas fa-trash"></i></a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="alert alert-info" th:unless="${subCategories != null}">
+        Please select a category to view its subcategories.
+    </div>
+</div>
+
+<script th:replace="~{layout :: scripts}"></script>
+</body>
+</html>
