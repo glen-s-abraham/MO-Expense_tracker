@@ -18,41 +18,54 @@ public class DataInitializer {
     public CommandLineRunner initData(UserRepository userRepository,
             CategoryRepository categoryRepository,
             SubCategoryRepository subCategoryRepository,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            org.springframework.core.env.Environment env) {
         return args -> {
-            // Create Users
-            if (userRepository.count() == 0) {
-                userRepository.save(new User("admin", passwordEncoder.encode("password"), "ROLE_ADMIN"));
-                userRepository.save(new User("manager", passwordEncoder.encode("password"), "ROLE_MANAGER"));
-                userRepository.save(new User("accountant", passwordEncoder.encode("password"), "ROLE_ACCOUNTANT"));
-                userRepository.save(new User("supervisor", passwordEncoder.encode("password"), "ROLE_SUPERVISOR"));
-            }
+            String[] activeProfiles = env.getActiveProfiles();
+            boolean isProd = java.util.Arrays.asList(activeProfiles).contains("prod");
 
-            // Create Categories
-            if (categoryRepository.count() == 0) {
-                Category rawMaterials = new Category();
-                rawMaterials.setName("Raw Materials");
-                categoryRepository.save(rawMaterials);
+            if (isProd) {
+                // Prod Mode: Only create admin if not exists
+                if (userRepository.findByUsername("admin").isEmpty()) {
+                    userRepository.save(new User("admin", passwordEncoder.encode("password"), "ROLE_ADMIN"));
+                    System.out.println("Temporary admin user created for production.");
+                }
+            } else {
+                // Dev Mode: Load all sample data
+                // Create Users
+                if (userRepository.count() == 0) {
+                    userRepository.save(new User("admin", passwordEncoder.encode("password"), "ROLE_ADMIN"));
+                    userRepository.save(new User("manager", passwordEncoder.encode("password"), "ROLE_MANAGER"));
+                    userRepository.save(new User("accountant", passwordEncoder.encode("password"), "ROLE_ACCOUNTANT"));
+                    userRepository.save(new User("supervisor", passwordEncoder.encode("password"), "ROLE_SUPERVISOR"));
+                }
 
-                Category utilities = new Category();
-                utilities.setName("Utilities");
-                categoryRepository.save(utilities);
+                // Create Categories
+                if (categoryRepository.count() == 0) {
+                    Category rawMaterials = new Category();
+                    rawMaterials.setName("Raw Materials");
+                    categoryRepository.save(rawMaterials);
 
-                // Create SubCategories
-                SubCategory seeds = new SubCategory();
-                seeds.setName("Seeds / Spores");
-                seeds.setCategory(rawMaterials);
-                subCategoryRepository.save(seeds);
+                    Category utilities = new Category();
+                    utilities.setName("Utilities");
+                    categoryRepository.save(utilities);
 
-                SubCategory compost = new SubCategory();
-                compost.setName("Compost");
-                compost.setCategory(rawMaterials);
-                subCategoryRepository.save(compost);
+                    // Create SubCategories
+                    SubCategory seeds = new SubCategory();
+                    seeds.setName("Seeds / Spores");
+                    seeds.setCategory(rawMaterials);
+                    subCategoryRepository.save(seeds);
 
-                SubCategory electricity = new SubCategory();
-                electricity.setName("Electricity");
-                electricity.setCategory(utilities);
-                subCategoryRepository.save(electricity);
+                    SubCategory compost = new SubCategory();
+                    compost.setName("Compost");
+                    compost.setCategory(rawMaterials);
+                    subCategoryRepository.save(compost);
+
+                    SubCategory electricity = new SubCategory();
+                    electricity.setName("Electricity");
+                    electricity.setCategory(utilities);
+                    subCategoryRepository.save(electricity);
+                }
             }
         };
     }
