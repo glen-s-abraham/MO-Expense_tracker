@@ -91,9 +91,15 @@
                                 <td>
                                     <a th:href="@{/expense/edit/{id}(id=${expense.id})}" class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i> Edit</a>
                                     <form th:action="@{/expense/submit/{id}(id=${expense.id})}" method="post" class="d-inline">
+                                        <input type="hidden" name="search" th:value="${search}">
+                                        <input type="hidden" name="startDate" th:value="${startDate}">
+                                        <input type="hidden" name="endDate" th:value="${endDate}">
+                                        <input type="hidden" name="categoryId" th:value="${categoryId}">
+                                        <input type="hidden" name="sortField" th:value="${sortField}">
+                                        <input type="hidden" name="sortDir" th:value="${sortDir}">
                                         <button type="submit" class="btn btn-sm btn-outline-success"><i class="fas fa-paper-plane"></i> Submit</button>
                                     </form>
-                                    <a th:href="@{/expense/delete/{id}(id=${expense.id})}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure?')"><i class="fas fa-trash"></i></a>
+                                    <a th:href="@{/expense/delete/{id}(id=${expense.id}, search=${search}, startDate=${startDate}, endDate=${endDate}, categoryId=${categoryId}, sortField=${sortField}, sortDir=${sortDir})}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure?')"><i class="fas fa-trash"></i></a>
                                     <a th:if="${expense.status.name() == 'QUERIES_RAISED'}" th:href="@{/expense/view/{id}(id=${expense.id})}" class="btn btn-sm btn-outline-info"><i class="fas fa-comment"></i> View Comments</a>
                                 </td>
                             </tr>

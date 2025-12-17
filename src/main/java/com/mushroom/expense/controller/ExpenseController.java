@@ -161,9 +161,15 @@ public class ExpenseController {
     }
 
     @PostMapping("/expense/submit/{id}")
-    public String submitExpense(@PathVariable Long id) {
+    public String submitExpense(@PathVariable Long id,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) LocalDate startDate,
+            @RequestParam(required = false) LocalDate endDate,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(defaultValue = "date") String sortField,
+            @RequestParam(defaultValue = "DESC") String sortDir) {
         expenseService.updateExpenseStatus(id, ExpenseStatus.SUBMITTED);
-        return "redirect:/dashboard";
+        return buildRedirectUrl(search, startDate, endDate, categoryId, sortField, sortDir);
     }
 
     @GetMapping("/expense/edit/{id}")
@@ -178,38 +184,78 @@ public class ExpenseController {
     }
 
     @GetMapping("/expense/delete/{id}")
-    public String deleteExpense(@PathVariable Long id) {
+    public String deleteExpense(@PathVariable Long id,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) LocalDate startDate,
+            @RequestParam(required = false) LocalDate endDate,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(defaultValue = "date") String sortField,
+            @RequestParam(defaultValue = "DESC") String sortDir) {
         expenseService.deleteExpense(id);
-        return "redirect:/dashboard";
+        return buildRedirectUrl(search, startDate, endDate, categoryId, sortField, sortDir);
     }
 
     // --- Accountant Actions ---
 
     @PostMapping("/expense/approve/{id}")
-    public String approveExpense(@PathVariable Long id) {
+    public String approveExpense(@PathVariable Long id,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) LocalDate startDate,
+            @RequestParam(required = false) LocalDate endDate,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(defaultValue = "date") String sortField,
+            @RequestParam(defaultValue = "DESC") String sortDir) {
         expenseService.updateExpenseStatus(id, ExpenseStatus.APPROVED);
-        return "redirect:/dashboard";
+        return buildRedirectUrl(search, startDate, endDate, categoryId, sortField, sortDir);
     }
 
     @PostMapping("/expense/reject/{id}")
     public String rejectExpense(@PathVariable Long id,
             @RequestParam(value = "message", required = false) String message,
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) LocalDate startDate,
+            @RequestParam(required = false) LocalDate endDate,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(defaultValue = "date") String sortField,
+            @RequestParam(defaultValue = "DESC") String sortDir) {
         User user = userService.findByUsername(userDetails.getUsername()).orElseThrow();
         if (message != null && !message.trim().isEmpty()) {
             expenseService.addComment(id, user, message);
         }
         expenseService.updateExpenseStatus(id, ExpenseStatus.REJECTED);
-        return "redirect:/dashboard";
+        return buildRedirectUrl(search, startDate, endDate, categoryId, sortField, sortDir);
     }
 
     @PostMapping("/expense/query/{id}")
     public String queryExpense(@PathVariable Long id,
             @RequestParam("message") String message,
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) LocalDate startDate,
+            @RequestParam(required = false) LocalDate endDate,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(defaultValue = "date") String sortField,
+            @RequestParam(defaultValue = "DESC") String sortDir) {
         User user = userService.findByUsername(userDetails.getUsername()).orElseThrow();
         expenseService.addComment(id, user, message);
-        return "redirect:/dashboard";
+        return buildRedirectUrl(search, startDate, endDate, categoryId, sortField, sortDir);
+    }
+
+    private String buildRedirectUrl(String search, LocalDate startDate, LocalDate endDate, Long categoryId,
+            String sortField, String sortDir) {
+        StringBuilder url = new StringBuilder("redirect:/dashboard?");
+        if (search != null && !search.isEmpty())
+            url.append("search=").append(search).append("&");
+        if (startDate != null)
+            url.append("startDate=").append(startDate).append("&");
+        if (endDate != null)
+            url.append("endDate=").append(endDate).append("&");
+        if (categoryId != null)
+            url.append("categoryId=").append(categoryId).append("&");
+        url.append("sortField=").append(sortField).append("&");
+        url.append("sortDir=").append(sortDir);
+        return url.toString();
     }
 
     @GetMapping("/expense/view/{id}")

@@ -107,6 +107,12 @@
                                 <td>
                                     <div class="btn-group" role="group">
                                         <form th:action="@{/expense/approve/{id}(id=${expense.id})}" method="post">
+                                            <input type="hidden" name="search" th:value="${search}">
+                                            <input type="hidden" name="startDate" th:value="${startDate}">
+                                            <input type="hidden" name="endDate" th:value="${endDate}">
+                                            <input type="hidden" name="categoryId" th:value="${categoryId}">
+                                            <input type="hidden" name="sortField" th:value="${sortField}">
+                                            <input type="hidden" name="sortDir" th:value="${sortDir}">
                                             <button type="submit" class="btn btn-sm btn-success me-1" title="Approve"><i class="fas fa-check"></i></button>
                                         </form>
                                         <button type="button" class="btn btn-sm btn-danger me-1" data-bs-toggle="modal" th:data-bs-target="'#rejectModal' + ${expense.id}" title="Reject">
@@ -122,6 +128,12 @@
                                                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                     </div>
                                                     <form th:action="@{/expense/reject/{id}(id=${expense.id})}" method="post">
+                                                        <input type="hidden" name="search" th:value="${search}">
+                                                        <input type="hidden" name="startDate" th:value="${startDate}">
+                                                        <input type="hidden" name="endDate" th:value="${endDate}">
+                                                        <input type="hidden" name="categoryId" th:value="${categoryId}">
+                                                        <input type="hidden" name="sortField" th:value="${sortField}">
+                                                        <input type="hidden" name="sortDir" th:value="${sortDir}">
                                                         <div class="modal-body">
                                                             <div class="mb-3">
                                                                 <label class="form-label">Reason for Rejection</label>
@@ -150,6 +162,12 @@
                                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                 </div>
                                                 <form th:action="@{/expense/query/{id}(id=${expense.id})}" method="post">
+                                                    <input type="hidden" name="search" th:value="${search}">
+                                                    <input type="hidden" name="startDate" th:value="${startDate}">
+                                                    <input type="hidden" name="endDate" th:value="${endDate}">
+                                                    <input type="hidden" name="categoryId" th:value="${categoryId}">
+                                                    <input type="hidden" name="sortField" th:value="${sortField}">
+                                                    <input type="hidden" name="sortDir" th:value="${sortDir}">
                                                     <div class="modal-body">
                                                         <div class="mb-3">
                                                             <label class="form-label">Reason / Question</label>
