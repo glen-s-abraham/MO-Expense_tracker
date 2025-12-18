@@ -89,6 +89,9 @@
                                 <button type="button" class="btn btn-outline-success flex-grow-1 shadow-sm" onclick="openInput('cameraInput', 'galleryInput')">
                                     <i class="fas fa-camera me-2"></i>Camera
                                 </button>
+                                <button type="button" class="btn btn-outline-secondary shadow-sm" onclick="clearFileInputs()" title="Clear Selection">
+                                    <i class="fas fa-times"></i>
+                                </button>
                             </div>
                             
                             <input type="file" id="galleryInput" name="receiptFiles" accept="image/*" multiple class="d-none" onchange="handleFileSelect(this, 'cameraInput')">
@@ -98,25 +101,23 @@
                             
                             <!-- Existing Files Display -->
                             <div class="mt-2">
-                                <div th:if="${expense.receiptImage != null}" class="d-flex align-items-center justify-content-between border p-2 mb-2 rounded" id="primaryImageContainer">
-                                    <div>
-                                        <small class="text-muted d-block">Primary Receipt</small>
-                                        <a th:href="@{'/uploads/' + ${expense.receiptImage}}" target="_blank" th:text="${expense.receiptImage}">filename.jpg</a>
-                                    </div>
-                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="markPrimaryForDeletion()">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                    <input type="hidden" name="deletePrimaryImage" id="deletePrimaryImage" value="false">
-                                </div>
-
-                                <div th:each="att : ${expense.attachments}" class="d-flex align-items-center justify-content-between border p-2 mb-2 rounded" th:id="'attachment-' + ${att.id}">
+                                <div th:each="att : ${expense.attachments}" 
+                                     class="d-flex align-items-center justify-content-between border p-2 mb-2 rounded" 
+                                     th:id="'attachment-' + ${att.id}">
                                     <div>
                                         <small class="text-muted d-block">Attachment</small>
                                         <a th:href="@{'/uploads/' + ${att.fileName}}" target="_blank" th:text="${att.fileName}">filename.jpg</a>
                                     </div>
-                                    <button type="button" class="btn btn-sm btn-outline-danger" th:onclick="'markAttachmentForDeletion(' + ${att.id} + ')'">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+                                    <div class="d-flex align-items-center">
+                                        <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                th:hx-delete="@{'/expense/attachment/' + ${att.id}}"
+                                                th:hx-confirm="'Are you sure you want to delete ' + ${att.fileName} + '?'"
+                                                hx-target="closest div[id^='attachment-']"
+                                                hx-swap="outerHTML"
+                                                hx-on::response-error="alert('Error deleting: ' + event.detail.xhr.statusText)">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div id="deletedAttachmentsContainer"></div>
                             </div>
@@ -124,19 +125,23 @@
 
                         <script>
                             function openInput(inputId, otherInputId) {
+                                console.log("Opening input: " + inputId);
                                 const input = document.getElementById(inputId);
-                                input.disabled = false; // Ensure enabled before clicking
-                                input.click();
+                                if (input) {
+                                    input.disabled = false;
+                                    input.click();
+                                } else {
+                                    console.error("Input not found: " + inputId);
+                                    alert("Error: Input element not found.");
+                                }
                             }
 
                             function handleFileSelect(input, otherInputId) {
                                 if (input.files && input.files.length > 0) {
-                                    // Disable the other input so it doesn't submit
                                     const other = document.getElementById(otherInputId);
                                     other.value = '';
                                     other.disabled = true;
                                     
-                                    // Show filename count
                                     const display = document.getElementById('fileNameDisplay');
                                     if (input.files.length === 1) {
                                         display.textContent = 'Selected: ' + input.files[0].name;
@@ -147,20 +152,20 @@
                                 }
                             }
 
-                            function markPrimaryForDeletion() {
-                                document.getElementById('deletePrimaryImage').value = 'true';
-                                document.getElementById('primaryImageContainer').style.display = 'none';
+
+
+                            function clearFileInputs() {
+                                document.getElementById('galleryInput').value = '';
+                                document.getElementById('cameraInput').value = '';
+                                document.getElementById('fileNameDisplay').style.display = 'none';
+                                document.getElementById('galleryInput').disabled = false;
+                                document.getElementById('cameraInput').disabled = false;
                             }
 
+                            // Fallback for cached pages
                             function markAttachmentForDeletion(id) {
-                                const container = document.getElementById('deletedAttachmentsContainer');
-                                const input = document.createElement('input');
-                                input.type = 'hidden';
-                                input.name = 'deleteAttachmentIds';
-                                input.value = id;
-                                container.appendChild(input);
-                                
-                                document.getElementById('attachment-' + id).style.display = 'none';
+                                alert("The application has been updated. Please refresh the page to enable the new delete functionality.");
+                                window.location.reload();
                             }
                         </script>
 

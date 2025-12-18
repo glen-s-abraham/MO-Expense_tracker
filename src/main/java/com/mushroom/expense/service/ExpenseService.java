@@ -24,12 +24,15 @@ public class ExpenseService {
 
     private final ExpenseRepository expenseRepository;
     private final ExpenseCommentRepository expenseCommentRepository;
+    private final com.mushroom.expense.repository.ExpenseAttachmentRepository expenseAttachmentRepository;
     private final FileStorageService fileStorageService;
 
     public ExpenseService(ExpenseRepository expenseRepository, ExpenseCommentRepository expenseCommentRepository,
+            com.mushroom.expense.repository.ExpenseAttachmentRepository expenseAttachmentRepository,
             FileStorageService fileStorageService) {
         this.expenseRepository = expenseRepository;
         this.expenseCommentRepository = expenseCommentRepository;
+        this.expenseAttachmentRepository = expenseAttachmentRepository;
         this.fileStorageService = fileStorageService;
     }
 
@@ -98,21 +101,30 @@ public class ExpenseService {
             for (com.mushroom.expense.entity.ExpenseAttachment attachment : expense.getAttachments()) {
                 if (deleteAttachmentIds.contains(attachment.getId())) {
                     fileStorageService.deleteFile(attachment.getFileName());
+                    expenseAttachmentRepository.delete(attachment); // Explicit delete
                     attachmentsToRemove.add(attachment);
                 }
             }
             expense.getAttachments().removeAll(attachmentsToRemove);
         }
 
+        // Migration: Move legacy receiptImage to attachments if present
+        if (expense.getReceiptImage() != null && !expense.getReceiptImage().isEmpty()) {
+            boolean alreadyExists = expense.getAttachments().stream()
+                    .anyMatch(a -> a.getFileName().equals(expense.getReceiptImage()));
+
+            if (!alreadyExists) {
+                com.mushroom.expense.entity.ExpenseAttachment attachment = new com.mushroom.expense.entity.ExpenseAttachment(
+                        expense.getReceiptImage(), expense);
+                expense.getAttachments().add(attachment);
+            }
+            expense.setReceiptImage(null); // Clear legacy field
+        }
+
         if (files != null && !files.isEmpty()) {
             for (MultipartFile file : files) {
                 if (!file.isEmpty()) {
                     String fileName = fileStorageService.storeFile(file);
-
-                    // For backward compatibility
-                    if (expense.getReceiptImage() == null) {
-                        expense.setReceiptImage(fileName);
-                    }
 
                     com.mushroom.expense.entity.ExpenseAttachment attachment = new com.mushroom.expense.entity.ExpenseAttachment(
                             fileName, expense);
@@ -168,6 +180,29 @@ public class ExpenseService {
             }
 
             expenseRepository.deleteById(id);
+        }
+    }
+
+    public void deleteAttachment(Long attachmentId) {
+        Optional<com.mushroom.expense.entity.ExpenseAttachment> attachmentOptional = expenseAttachmentRepository
+                .findById(attachmentId);
+        if (attachmentOptional.isPresent()) {
+            com.mushroom.expense.entity.ExpenseAttachment attachment = attachmentOptional.get();
+
+            // Delete file from storage
+            fileStorageService.deleteFile(attachment.getFileName());
+
+            // Remove from parent expense to ensure consistency if expense is loaded in
+            // session
+            Expense expense = attachment.getExpense();
+            if (expense != null && expense.getAttachments() != null) {
+                expense.getAttachments().remove(attachment);
+                expenseRepository.save(expense); // Save expense to update the collection
+            } else {
+                // Fallback direct delete if no parent link (shouldn't happen with correct
+                // mapping)
+                expenseAttachmentRepository.delete(attachment);
+            }
         }
     }
 }

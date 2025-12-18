@@ -48,4 +48,19 @@ public class ExpenseAttachment {
     public void setExpense(Expense expense) {
         this.expense = expense;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        ExpenseAttachment that = (ExpenseAttachment) o;
+        return id != null && id.equals(that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

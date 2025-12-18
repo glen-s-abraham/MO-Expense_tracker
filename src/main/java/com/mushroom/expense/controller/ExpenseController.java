@@ -127,7 +127,9 @@ public class ExpenseController {
     @GetMapping("/expense/new")
     @PreAuthorize("hasRole('MANAGER')")
     public String newExpenseForm(Model model) {
-        model.addAttribute("expense", new Expense());
+        Expense expense = new Expense();
+        expense.setDate(LocalDate.now());
+        model.addAttribute("expense", expense);
         model.addAttribute("categories", categoryService.findAllCategories());
         model.addAttribute("paymentModes", PaymentMode.values());
         return "expense_form";
@@ -141,26 +143,30 @@ public class ExpenseController {
             @RequestParam(value = "deletePrimaryImage", required = false, defaultValue = "false") boolean deletePrimaryImage,
             @AuthenticationPrincipal UserDetails userDetails) throws IOException {
         User user = userService.findByUsername(userDetails.getUsername()).orElseThrow();
-        expense.setUser(user);
 
-        // If it was QUERIES_RAISED, change to SUBMITTED upon edit?
-        // Or user explicitly submits? Let's assume saving keeps it DRAFT unless
-        // explicitly submitted.
-        // But for simplicity, let's say "Save" puts it in DRAFT.
-        // We need a "Submit" button logic.
-        // For now, let's just save as DRAFT if new, or keep status if editing.
-        // Actually, let's force DRAFT if it's new.
-        if (expense.getId() == null) {
-            expense.setStatus(ExpenseStatus.DRAFT);
+        Expense expenseToSave;
+        if (expense.getId() != null) {
+            // Editing existing expense
+            expenseToSave = expenseService.findById(expense.getId()).orElseThrow();
+            // Update fields
+            expenseToSave.setCategory(expense.getCategory());
+            expenseToSave.setSubCategory(expense.getSubCategory());
+            expenseToSave.setDescription(expense.getDescription());
+            expenseToSave.setAmount(expense.getAmount());
+            expenseToSave.setDate(expense.getDate());
+            expenseToSave.setPaymentMode(expense.getPaymentMode());
+            expenseToSave.setTaxPercentage(expense.getTaxPercentage());
+            expenseToSave.setBatchId(expense.getBatchId());
+            // User remains the same or could be updated if needed, but usually owner
+            // doesn't change
         } else {
-            // If editing, keep existing status unless we want to reset.
-            // But usually editing a DRAFT keeps it DRAFT.
-            // Editing a QUERIES_RAISED might keep it QUERIES_RAISED until "Submit" is
-            // clicked.
-            // Let's handle "Submit" via a separate action or a flag.
+            // New expense
+            expenseToSave = expense;
+            expenseToSave.setUser(user);
+            expenseToSave.setStatus(ExpenseStatus.DRAFT);
         }
 
-        expenseService.saveExpense(expense, files, deleteAttachmentIds, deletePrimaryImage);
+        expenseService.saveExpense(expenseToSave, files, deleteAttachmentIds, deletePrimaryImage);
         return "redirect:/dashboard";
     }
 
@@ -200,6 +206,14 @@ public class ExpenseController {
             @RequestParam(defaultValue = "DESC") String sortDir) {
         expenseService.deleteExpense(id);
         return buildRedirectUrl(search, startDate, endDate, categoryId, sortField, sortDir);
+    }
+
+    @DeleteMapping("/expense/attachment/{id}")
+    @PreAuthorize("hasRole('MANAGER')")
+    @ResponseBody
+    public String deleteAttachment(@PathVariable Long id) {
+        expenseService.deleteAttachment(id);
+        return ""; // Return empty string for HTMX to remove the element
     }
 
     // --- Accountant Actions ---
