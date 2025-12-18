@@ -28,7 +28,7 @@ public class FileStorageService {
     public String storeFile(MultipartFile file) {
         // Normalize file name
         String originalFileName = file.getOriginalFilename();
-        if (originalFileName == null) {
+        if (originalFileName == null || originalFileName.isEmpty()) {
             throw new RuntimeException("Invalid file name");
         }
 
