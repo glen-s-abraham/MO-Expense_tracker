@@ -57,6 +57,17 @@ public class Expense {
         this.attachments = attachments;
     }
 
+    @OneToMany(mappedBy = "expense", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private java.util.List<ExpenseComment> comments = new java.util.ArrayList<>();
+
+    public java.util.List<ExpenseComment> getComments() {
+        return comments;
+    }
+
+    public void setComments(java.util.List<ExpenseComment> comments) {
+        this.comments = comments;
+    }
+
     public Long getId() {
         return id;
     }

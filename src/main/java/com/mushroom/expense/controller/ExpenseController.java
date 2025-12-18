@@ -283,10 +283,13 @@ public class ExpenseController {
     }
 
     @GetMapping("/expense/view/{id}")
-    public String viewExpense(@PathVariable Long id, Model model) {
+    public String viewExpense(@PathVariable Long id, Model model, @AuthenticationPrincipal UserDetails userDetails) {
         Expense expense = expenseService.findById(id).orElseThrow();
+        User user = userService.findByUsername(userDetails.getUsername()).orElseThrow();
+
         model.addAttribute("expense", expense);
         model.addAttribute("comments", expenseService.getComments(id));
+        model.addAttribute("userRole", user.getRole());
         return "expense_view";
     }
 
