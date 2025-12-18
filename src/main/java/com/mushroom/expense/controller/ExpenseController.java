@@ -157,8 +157,12 @@ public class ExpenseController {
             expenseToSave.setPaymentMode(expense.getPaymentMode());
             expenseToSave.setTaxPercentage(expense.getTaxPercentage());
             expenseToSave.setBatchId(expense.getBatchId());
-            // User remains the same or could be updated if needed, but usually owner
-            // doesn't change
+            expenseToSave.setBatchId(expense.getBatchId());
+
+            // If expense was rejected, reset to DRAFT so it can be resubmitted
+            if (expenseToSave.getStatus() == ExpenseStatus.REJECTED) {
+                expenseToSave.setStatus(ExpenseStatus.DRAFT);
+            }
         } else {
             // New expense
             expenseToSave = expense;

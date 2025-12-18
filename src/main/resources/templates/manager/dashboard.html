@@ -271,6 +271,7 @@
                                 <td class="fw-bold" th:text="${expense.amount}">100.00</td>
                                 <td><span class="badge bg-danger">Rejected</span></td>
                                 <td>
+                                    <a th:href="@{/expense/edit/{id}(id=${expense.id})}" class="btn btn-sm btn-outline-primary" title="Edit & Fix"><i class="fas fa-edit"></i></a>
                                     <a th:href="@{/expense/view/{id}(id=${expense.id})}" class="btn btn-sm btn-outline-info"><i class="fas fa-comment"></i> View Reason</a>
                                 </td>
                             </tr>
