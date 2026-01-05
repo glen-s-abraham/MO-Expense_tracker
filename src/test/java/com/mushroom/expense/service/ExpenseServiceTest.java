@@ -86,6 +86,21 @@ class ExpenseServiceTest {
     }
 
     @Test
+    void saveExpense_WithPdfAttachment() throws IOException {
+        MultipartFile mockFile = mock(MultipartFile.class);
+        when(mockFile.isEmpty()).thenReturn(false);
+        when(fileStorageService.storeFile(mockFile)).thenReturn("test-file.pdf");
+        when(expenseRepository.save(any(Expense.class))).thenReturn(expense);
+
+        List<MultipartFile> files = List.of(mockFile);
+        Expense savedExpense = expenseService.saveExpense(expense, files, null, false);
+
+        assertEquals(1, savedExpense.getAttachments().size());
+        assertEquals("test-file.pdf", savedExpense.getAttachments().get(0).getFileName());
+        verify(fileStorageService, times(1)).storeFile(mockFile);
+    }
+
+    @Test
     void deleteExpense_Success() {
         when(expenseRepository.findById(1L)).thenReturn(Optional.of(expense));
 
