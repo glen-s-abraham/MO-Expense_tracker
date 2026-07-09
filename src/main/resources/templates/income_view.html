@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 
-<head th:replace="~{layout :: head('Expense Details')}"></head>
+<head th:replace="~{layout :: head('Income Details')}"></head>
 
 <body>
     <nav th:replace="~{layout :: navbar}"></nav>
@@ -12,49 +12,44 @@
                 <div class="card mb-4">
                     <div class="card-header bg-white d-flex justify-content-between align-items-center">
                         <div>
-                            <h4 class="mb-0">Expense Details <span class="text-muted"
-                                    th:text="'#' + ${expense.id}"></span></h4>
+                            <h4 class="mb-0">Income Details <span class="text-muted"
+                                    th:text="'#' + ${income.id}"></span></h4>
                             <small class="text-muted">Submitted by <span class="fw-bold"
-                                    th:text="${expense.user.username}">User</span></small>
+                                    th:text="${income.user.username}">User</span></small>
                         </div>
-                        <span class="badge bg-warning text-dark" th:text="${expense.status}">QUERIES_RAISED</span>
+                        <span class="badge bg-warning text-dark" th:text="${income.status}">QUERIES_RAISED</span>
                     </div>
                     <div class="card-body">
+                        <div class="mb-3">
+                            <strong>Category:</strong> <span th:text="${income.category.name}"></span>
+                        </div>
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <strong>Category:</strong> <span th:text="${expense.category.name}"></span>
+                                <strong>Amount:</strong> <span th:text="${income.amount}"></span>
                             </div>
                             <div class="col-md-6">
-                                <strong>SubCategory:</strong> <span th:text="${expense.subCategory.name}"></span>
+                                <strong>Date:</strong> <span th:text="${income.date}"></span>
                             </div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <strong>Amount:</strong> <span th:text="${expense.amount}"></span>
+                                <strong>Payment Mode:</strong> <span th:text="${income.paymentMode}"></span>
                             </div>
                             <div class="col-md-6">
-                                <strong>Date:</strong> <span th:text="${expense.date}"></span>
+                                <strong>Tax Percentage:</strong> <span th:text="${income.taxPercentage} + '%'"></span>
                             </div>
                         </div>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <strong>Payment Mode:</strong> <span th:text="${expense.paymentMode}"></span>
-                            </div>
-                            <div class="col-md-6">
-                                <strong>Tax Percentage:</strong> <span th:text="${expense.taxPercentage} + '%'"></span>
-                            </div>
-                        </div>
-                        <div class="mb-3" th:if="${expense.batchId != null && !expense.batchId.empty}">
-                            <strong>Batch ID:</strong> <span th:text="${expense.batchId}"></span>
+                        <div class="mb-3" th:if="${income.batchId != null && !income.batchId.empty}">
+                            <strong>Batch ID:</strong> <span th:text="${income.batchId}"></span>
                         </div>
                         <div class="mb-3">
                             <strong>Description:</strong>
-                            <p th:text="${expense.description}"></p>
+                            <p th:text="${income.description}"></p>
                         </div>
                         <div class="mb-3">
                             <strong>Attachments:</strong> <br>
                             <div class="d-flex flex-wrap gap-2">
-                                <div th:each="attachment : ${expense.attachments}">
+                                <div th:each="attachment : ${income.attachments}">
                                     <a th:href="@{'/uploads/' + ${attachment.fileName}}" target="_blank">
                                         <img th:if="${!attachment.fileName.endsWith('.pdf')}"
                                             th:src="@{'/uploads/' + ${attachment.fileName}}" class="img-thumbnail"
@@ -67,20 +62,20 @@
                                     </a>
                                 </div>
                             </div>
-                            <div th:if="${expense.attachments.empty}" class="text-muted">
+                            <div th:if="${income.attachments.empty}" class="text-muted">
                                 No attachments.
                             </div>
                         </div>
                     </div>
                     <div class="card-footer bg-white">
                         <!-- Owner Actions -->
-                        <a th:if="${isOwner && (expense.status.name() == 'DRAFT' || expense.status.name() == 'QUERIES_RAISED' || expense.status.name() == 'REJECTED')}"
-                            th:href="@{/expense/edit/{id}(id=${expense.id})}" class="btn btn-primary">Edit & Fix</a>
+                        <a th:if="${isOwner && (income.status.name() == 'DRAFT' || income.status.name() == 'QUERIES_RAISED' || income.status.name() == 'REJECTED')}"
+                            th:href="@{/income/edit/{id}(id=${income.id})}" class="btn btn-primary">Edit & Fix</a>
 
                         <!-- Accountant/Supervisor Actions -->
-                        <div th:if="${(userRole == 'ROLE_ACCOUNTANT' || userRole == 'ROLE_SUPERVISOR') && expense.status.name() == 'SUBMITTED'}"
+                        <div th:if="${(userRole == 'ROLE_ACCOUNTANT' || userRole == 'ROLE_SUPERVISOR' || userRole == 'ROLE_ADMIN') && income.status.name() == 'SUBMITTED'}"
                             class="d-inline">
-                            <form th:action="@{/expense/approve/{id}(id=${expense.id})}" method="post" class="d-inline">
+                            <form th:action="@{/income/approve/{id}(id=${income.id})}" method="post" class="d-inline">
                                 <button type="submit" class="btn btn-success"><i
                                         class="fas fa-check me-2"></i>Approve</button>
                             </form>
@@ -95,7 +90,7 @@
                         </div>
 
                         <!-- Accountant Actions for APPROVED -->
-                        <div th:if="${userRole == 'ROLE_ACCOUNTANT' && expense.status.name() == 'APPROVED'}"
+                        <div th:if="${(userRole == 'ROLE_ACCOUNTANT' || userRole == 'ROLE_SUPERVISOR' || userRole == 'ROLE_ADMIN') && income.status.name() == 'APPROVED'}"
                             class="d-inline">
                             <button type="button" class="btn btn-danger" data-bs-toggle="modal"
                                 data-bs-target="#rejectModal">
@@ -108,9 +103,9 @@
                         </div>
 
                         <!-- Accountant Actions for REJECTED -->
-                        <div th:if="${userRole == 'ROLE_ACCOUNTANT' && expense.status.name() == 'REJECTED'}"
+                        <div th:if="${(userRole == 'ROLE_ACCOUNTANT' || userRole == 'ROLE_SUPERVISOR' || userRole == 'ROLE_ADMIN') && income.status.name() == 'REJECTED'}"
                             class="d-inline">
-                            <form th:action="@{/expense/approve/{id}(id=${expense.id})}" method="post" class="d-inline">
+                            <form th:action="@{/income/approve/{id}(id=${income.id})}" method="post" class="d-inline">
                                 <button type="submit" class="btn btn-success"><i
                                         class="fas fa-check me-2"></i>Approve</button>
                             </form>
@@ -120,7 +115,7 @@
                             </button>
                         </div>
 
-                        <a href="/dashboard" class="btn btn-outline-secondary">Back</a>
+                        <a href="/my-incomes" class="btn btn-outline-secondary">Back</a>
                     </div>
                 </div>
 
@@ -131,7 +126,7 @@
                     <div class="card-body">
                         <div th:each="comment : ${comments}" class="mb-3 border-bottom pb-2">
                             <div class="d-flex justify-content-between">
-                                <strong th:text="${comment.user.username}">Accountant</strong>
+                                <strong th:text="${comment.user.username}">User</strong>
                                 <small class="text-muted"
                                     th:text="${#temporals.format(comment.timestamp, 'dd-MM-yyyy HH:mm')}">Date</small>
                             </div>
@@ -148,9 +143,9 @@
     <div class="modal fade" id="rejectModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form th:action="@{/expense/reject/{id}(id=${expense.id})}" method="post">
+                <form th:action="@{/income/reject/{id}(id=${income.id})}" method="post">
                     <div class="modal-header">
-                        <h5 class="modal-title">Reject Expense</h5>
+                        <h5 class="modal-title">Reject Income</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
@@ -173,7 +168,7 @@
     <div class="modal fade" id="queryModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form th:action="@{/expense/query/{id}(id=${expense.id})}" method="post">
+                <form th:action="@{/income/query/{id}(id=${income.id})}" method="post">
                     <div class="modal-header">
                         <h5 class="modal-title">Raise Query</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>

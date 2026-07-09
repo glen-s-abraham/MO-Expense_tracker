@@ -44,11 +44,33 @@ public class DataInitializer {
                 if (categoryRepository.count() == 0) {
                     Category rawMaterials = new Category();
                     rawMaterials.setName("Raw Materials");
+                    rawMaterials.setType(com.mushroom.expense.entity.TransactionType.EXPENSE);
                     categoryRepository.save(rawMaterials);
 
                     Category utilities = new Category();
                     utilities.setName("Utilities");
+                    utilities.setType(com.mushroom.expense.entity.TransactionType.EXPENSE);
                     categoryRepository.save(utilities);
+
+                    Category capital = new Category();
+                    capital.setName("Capital Introduced");
+                    capital.setType(com.mushroom.expense.entity.TransactionType.INCOME);
+                    categoryRepository.save(capital);
+
+                    Category sales = new Category();
+                    sales.setName("Sales");
+                    sales.setType(com.mushroom.expense.entity.TransactionType.INCOME);
+                    categoryRepository.save(sales);
+
+                    Category loan = new Category();
+                    loan.setName("Loan");
+                    loan.setType(com.mushroom.expense.entity.TransactionType.INCOME);
+                    categoryRepository.save(loan);
+
+                    Category others = new Category();
+                    others.setName("Others (Income)");
+                    others.setType(com.mushroom.expense.entity.TransactionType.INCOME);
+                    categoryRepository.save(others);
 
                     // Create SubCategories
                     SubCategory seeds = new SubCategory();

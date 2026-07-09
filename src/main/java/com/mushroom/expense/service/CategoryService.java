@@ -27,6 +27,10 @@ public class CategoryService {
         return categoryRepository.findAll();
     }
 
+    public List<Category> findCategoriesByType(com.mushroom.expense.entity.TransactionType type) {
+        return categoryRepository.findByType(type);
+    }
+
     public Optional<Category> findCategoryById(Long id) {
         return categoryRepository.findById(id);
     }

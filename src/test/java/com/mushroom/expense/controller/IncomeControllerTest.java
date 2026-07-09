@@ -1,10 +1,10 @@
 package com.mushroom.expense.controller;
 
-import com.mushroom.expense.entity.Expense;
-import com.mushroom.expense.entity.ExpenseStatus;
+import com.mushroom.expense.entity.Income;
+import com.mushroom.expense.entity.IncomeStatus;
 import com.mushroom.expense.entity.User;
 import com.mushroom.expense.service.CategoryService;
-import com.mushroom.expense.service.ExpenseService;
+import com.mushroom.expense.service.IncomeService;
 import com.mushroom.expense.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,14 +23,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(ExpenseController.class)
-class ExpenseControllerTest {
+@WebMvcTest(IncomeController.class)
+class IncomeControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @MockBean
-    private ExpenseService expenseService;
+    private IncomeService incomeService;
 
     @MockBean
     private CategoryService categoryService;
@@ -38,12 +38,9 @@ class ExpenseControllerTest {
     @MockBean
     private UserService userService;
 
-    @MockBean
-    private com.mushroom.expense.service.IncomeService incomeService;
-
     private User managerUser;
     private User accountantUser;
-    private Expense expense;
+    private Income income;
 
     @BeforeEach
     void setUp() {
@@ -57,70 +54,57 @@ class ExpenseControllerTest {
         accountantUser.setUsername("accountant");
         accountantUser.setRole("ROLE_ACCOUNTANT");
 
-        expense = new Expense();
-        expense.setId(1L);
-        expense.setStatus(ExpenseStatus.DRAFT);
-        expense.setUser(managerUser); // Set user to avoid null pointer in view
-        expense.setCategory(new com.mushroom.expense.entity.Category()); // Avoid null pointer
-        expense.setSubCategory(new com.mushroom.expense.entity.SubCategory()); // Avoid null pointer
+        income = new Income();
+        income.setId(1L);
+        income.setStatus(IncomeStatus.DRAFT);
+        income.setUser(managerUser);
+        income.setCategory(new com.mushroom.expense.entity.Category());
     }
 
     @Test
     @WithMockUser(username = "manager", roles = "MANAGER")
-    void dashboard_Manager_Success() throws Exception {
+    void myIncomes_Success() throws Exception {
         when(userService.findByUsername("manager")).thenReturn(Optional.of(managerUser));
+        when(incomeService.getIncomes(any(), any(), any(), any(), any(), any(), any()))
+                .thenReturn(org.springframework.data.domain.Page.empty());
 
-        mockMvc.perform(get("/dashboard"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/my-expenses"));
-    }
-
-    @Test
-    @WithMockUser(username = "manager", roles = "MANAGER")
-    void myExpenses_Success() throws Exception {
-        when(userService.findByUsername("manager")).thenReturn(Optional.of(managerUser));
-        when(expenseService.getExpenses(any(), any(), any(), any(), any(), any(), any()))
-                .thenReturn(org.springframework.data.domain.Page.empty()); // Mock page return
-
-        mockMvc.perform(get("/my-expenses"))
+        mockMvc.perform(get("/my-incomes"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("manager/dashboard"))
+                .andExpect(view().name("income_dashboard"))
                 .andExpect(model().attributeExists("myDrafts"));
     }
 
     @Test
     @WithMockUser(username = "accountant", roles = "ACCOUNTANT")
-    void dashboard_Accountant_Success() throws Exception {
+    void adminIncomeApprovals_Success() throws Exception {
         when(userService.findByUsername("accountant")).thenReturn(Optional.of(accountantUser));
-        when(expenseService.getExpenses(any(), any(), any(), any(), any(), any(), any()))
-                .thenReturn(org.springframework.data.domain.Page.empty()); // Mock page return
         when(incomeService.getIncomes(any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(org.springframework.data.domain.Page.empty());
 
-        mockMvc.perform(get("/dashboard"))
+        mockMvc.perform(get("/admin/income-approvals"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("accountant/dashboard"))
-                .andExpect(model().attributeExists("submittedExpenses"));
+                .andExpect(view().name("income_approvals"))
+                .andExpect(model().attributeExists("submittedIncomes"));
     }
 
     @Test
     @WithMockUser(username = "manager", roles = "MANAGER")
-    void viewExpense_Success() throws Exception {
+    void viewIncome_Success() throws Exception {
         when(userService.findByUsername("manager")).thenReturn(Optional.of(managerUser));
-        when(expenseService.findById(1L)).thenReturn(Optional.of(expense));
+        when(incomeService.findById(1L)).thenReturn(Optional.of(income));
 
-        mockMvc.perform(get("/expense/view/1"))
+        mockMvc.perform(get("/income/view/1"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("expense_view"))
-                .andExpect(model().attributeExists("expense"));
+                .andExpect(view().name("income_view"))
+                .andExpect(model().attributeExists("income"));
     }
 
     @Test
     @WithMockUser(username = "accountant", roles = "ACCOUNTANT")
-    void approveExpense_Success() throws Exception {
+    void approveIncome_Success() throws Exception {
         when(userService.findByUsername("accountant")).thenReturn(Optional.of(accountantUser));
 
-        mockMvc.perform(post("/expense/approve/1")
+        mockMvc.perform(post("/income/approve/1")
                 .with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrlPattern("/dashboard?*"));
@@ -128,20 +112,20 @@ class ExpenseControllerTest {
 
     @Test
     @WithMockUser(username = "manager", roles = "MANAGER")
-    void deleteExpense_Success() throws Exception {
+    void deleteIncome_Success() throws Exception {
         when(userService.findByUsername("manager")).thenReturn(Optional.of(managerUser));
 
-        mockMvc.perform(get("/expense/delete/1"))
+        mockMvc.perform(get("/income/delete/1"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrlPattern("/my-expenses?*"));
+                .andExpect(redirectedUrlPattern("/my-incomes?*"));
     }
 
     @Test
     @WithMockUser(username = "accountant", roles = "ACCOUNTANT")
-    void rejectExpense_WithComment() throws Exception {
+    void rejectIncome_WithComment() throws Exception {
         when(userService.findByUsername("accountant")).thenReturn(Optional.of(accountantUser));
 
-        mockMvc.perform(post("/expense/reject/1")
+        mockMvc.perform(post("/income/reject/1")
                 .param("message", "Rejection Reason")
                 .with(csrf()))
                 .andExpect(status().is3xxRedirection())
@@ -150,10 +134,10 @@ class ExpenseControllerTest {
 
     @Test
     @WithMockUser(username = "accountant", roles = "ACCOUNTANT")
-    void queryExpense_Success() throws Exception {
+    void queryIncome_Success() throws Exception {
         when(userService.findByUsername("accountant")).thenReturn(Optional.of(accountantUser));
 
-        mockMvc.perform(post("/expense/query/1")
+        mockMvc.perform(post("/income/query/1")
                 .param("message", "Query Message")
                 .with(csrf()))
                 .andExpect(status().is3xxRedirection())
@@ -162,12 +146,12 @@ class ExpenseControllerTest {
 
     @Test
     @WithMockUser(username = "manager", roles = "MANAGER")
-    void exportExpenses_Success() throws Exception {
+    void exportIncomes_Success() throws Exception {
         when(userService.findByUsername("manager")).thenReturn(Optional.of(managerUser));
-        when(expenseService.getExpenses(any(), any(), any(), any(), any(), any(), any()))
+        when(incomeService.getIncomes(any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(org.springframework.data.domain.Page.empty());
 
-        mockMvc.perform(get("/expense/export"))
+        mockMvc.perform(get("/income/export"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("text/csv"));
     }

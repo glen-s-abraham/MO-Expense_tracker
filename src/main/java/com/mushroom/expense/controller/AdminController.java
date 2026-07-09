@@ -64,6 +64,7 @@ public class AdminController {
     @GetMapping("/categories/new")
     public String newCategoryForm(Model model) {
         model.addAttribute("category", new Category());
+        model.addAttribute("types", com.mushroom.expense.entity.TransactionType.values());
         return "admin/category_form";
     }
 
@@ -76,6 +77,7 @@ public class AdminController {
     @GetMapping("/categories/edit/{id}")
     public String editCategoryForm(@PathVariable Long id, Model model) {
         model.addAttribute("category", categoryService.findCategoryById(id).orElseThrow());
+        model.addAttribute("types", com.mushroom.expense.entity.TransactionType.values());
         return "admin/category_form";
     }
 

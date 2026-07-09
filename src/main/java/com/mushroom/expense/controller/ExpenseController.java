@@ -25,11 +25,13 @@ public class ExpenseController {
     private final ExpenseService expenseService;
     private final CategoryService categoryService;
     private final UserService userService;
+    private final com.mushroom.expense.service.IncomeService incomeService;
 
-    public ExpenseController(ExpenseService expenseService, CategoryService categoryService, UserService userService) {
+    public ExpenseController(ExpenseService expenseService, CategoryService categoryService, UserService userService, com.mushroom.expense.service.IncomeService incomeService) {
         this.expenseService = expenseService;
         this.categoryService = categoryService;
         this.userService = userService;
+        this.incomeService = incomeService;
     }
 
     @GetMapping("/dashboard")
@@ -40,6 +42,9 @@ public class ExpenseController {
             @RequestParam(defaultValue = "0") int returnedPage,
             @RequestParam(defaultValue = "0") int rejectedPage,
             @RequestParam(defaultValue = "0") int submittedPage,
+            @RequestParam(defaultValue = "0") int submittedIncomePage,
+            @RequestParam(defaultValue = "0") int approvedIncomePage,
+            @RequestParam(defaultValue = "0") int rejectedIncomePage,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) LocalDate startDate,
             @RequestParam(required = false) LocalDate endDate,
@@ -59,32 +64,12 @@ public class ExpenseController {
         model.addAttribute("categoryId", categoryId);
         model.addAttribute("sortField", sortField);
         model.addAttribute("sortDir", sortDir);
-        model.addAttribute("categories", categoryService.findAllCategories()); // For filter dropdown
+        model.addAttribute("categories", categoryService.findCategoriesByType(com.mushroom.expense.entity.TransactionType.EXPENSE)); // For filter dropdown
 
         if (role.equals("ROLE_ADMIN")) {
             return "redirect:/admin/users";
         } else if (role.equals("ROLE_MANAGER")) {
-            model.addAttribute("myDrafts",
-                    expenseService.getExpenses(user, List.of(ExpenseStatus.DRAFT, ExpenseStatus.QUERIES_RAISED), search,
-                            startDate, endDate, categoryId,
-                            PageRequest.of(draftsPage, pageSize, sort)));
-            model.addAttribute("pending",
-                    expenseService.getExpenses(user, List.of(ExpenseStatus.SUBMITTED), search, startDate, endDate,
-                            categoryId,
-                            PageRequest.of(pendingPage, pageSize, sort)));
-            model.addAttribute("approved",
-                    expenseService.getExpenses(user, List.of(ExpenseStatus.APPROVED), search, startDate, endDate,
-                            categoryId,
-                            PageRequest.of(approvedPage, pageSize, sort)));
-            model.addAttribute("returned",
-                    expenseService.getExpenses(user, List.of(ExpenseStatus.QUERIES_RAISED), search, startDate, endDate,
-                            categoryId,
-                            PageRequest.of(returnedPage, pageSize, sort)));
-            model.addAttribute("rejected",
-                    expenseService.getExpenses(user, List.of(ExpenseStatus.REJECTED), search, startDate, endDate,
-                            categoryId,
-                            PageRequest.of(rejectedPage, pageSize, sort)));
-            return "manager/dashboard";
+            return "redirect:/my-expenses";
         } else if (role.equals("ROLE_ACCOUNTANT")) {
             model.addAttribute("submittedExpenses",
                     expenseService.getExpenses(null, List.of(ExpenseStatus.SUBMITTED), search, startDate, endDate,
@@ -98,6 +83,18 @@ public class ExpenseController {
                     expenseService.getExpenses(null, List.of(ExpenseStatus.REJECTED), search, startDate, endDate,
                             categoryId,
                             PageRequest.of(rejectedPage, pageSize, sort)));
+            model.addAttribute("submittedIncomes",
+                    incomeService.getIncomes(null, List.of(IncomeStatus.SUBMITTED), search, startDate, endDate,
+                            categoryId,
+                            PageRequest.of(submittedIncomePage, pageSize, sort)));
+            model.addAttribute("approvedIncomes",
+                    incomeService.getIncomes(null, List.of(IncomeStatus.APPROVED), search, startDate, endDate,
+                            categoryId,
+                            PageRequest.of(approvedIncomePage, pageSize, sort)));
+            model.addAttribute("rejectedIncomes",
+                    incomeService.getIncomes(null, List.of(IncomeStatus.REJECTED), search, startDate, endDate,
+                            categoryId,
+                            PageRequest.of(rejectedIncomePage, pageSize, sort)));
             return "accountant/dashboard";
         } else if (role.equals("ROLE_SUPERVISOR")) {
             model.addAttribute("myDrafts",
@@ -116,27 +113,142 @@ public class ExpenseController {
                     expenseService.getExpenses(null, List.of(ExpenseStatus.REJECTED), search, startDate, endDate,
                             categoryId,
                             PageRequest.of(rejectedPage, pageSize, sort)));
+            model.addAttribute("submittedIncomes",
+                    incomeService.getIncomes(null, List.of(IncomeStatus.SUBMITTED), search, startDate, endDate,
+                            categoryId,
+                            PageRequest.of(submittedIncomePage, pageSize, sort)));
+            model.addAttribute("approvedIncomes",
+                    incomeService.getIncomes(null, List.of(IncomeStatus.APPROVED), search, startDate, endDate,
+                            categoryId,
+                            PageRequest.of(approvedIncomePage, pageSize, sort)));
+            model.addAttribute("rejectedIncomes",
+                    incomeService.getIncomes(null, List.of(IncomeStatus.REJECTED), search, startDate, endDate,
+                            categoryId,
+                            PageRequest.of(rejectedIncomePage, pageSize, sort)));
             return "supervisor/dashboard";
         }
 
         return "dashboard"; // Fallback
     }
 
+    @GetMapping("/my-expenses")
+    public String myExpenses(@AuthenticationPrincipal UserDetails userDetails, Model model,
+            @RequestParam(defaultValue = "0") int draftsPage,
+            @RequestParam(defaultValue = "0") int pendingPage,
+            @RequestParam(defaultValue = "0") int approvedPage,
+            @RequestParam(defaultValue = "0") int returnedPage,
+            @RequestParam(defaultValue = "0") int rejectedPage,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) LocalDate startDate,
+            @RequestParam(required = false) LocalDate endDate,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(defaultValue = "date") String sortField,
+            @RequestParam(defaultValue = "DESC") String sortDir) {
+
+        User user = userService.findByUsername(userDetails.getUsername()).orElseThrow();
+        int pageSize = 5;
+        Sort sort = sortDir.equalsIgnoreCase("ASC") ? Sort.by(sortField).ascending() : Sort.by(sortField).descending();
+
+        model.addAttribute("search", search);
+        model.addAttribute("startDate", startDate);
+        model.addAttribute("endDate", endDate);
+        model.addAttribute("categoryId", categoryId);
+        model.addAttribute("sortField", sortField);
+        model.addAttribute("sortDir", sortDir);
+        model.addAttribute("categories", categoryService.findCategoriesByType(com.mushroom.expense.entity.TransactionType.EXPENSE));
+
+        model.addAttribute("myDrafts",
+                expenseService.getExpenses(user, List.of(ExpenseStatus.DRAFT, ExpenseStatus.QUERIES_RAISED), search,
+                        startDate, endDate, categoryId,
+                        PageRequest.of(draftsPage, pageSize, sort)));
+        model.addAttribute("pending",
+                expenseService.getExpenses(user, List.of(ExpenseStatus.SUBMITTED), search, startDate, endDate,
+                        categoryId,
+                        PageRequest.of(pendingPage, pageSize, sort)));
+        model.addAttribute("approved",
+                expenseService.getExpenses(user, List.of(ExpenseStatus.APPROVED), search, startDate, endDate,
+                        categoryId,
+                        PageRequest.of(approvedPage, pageSize, sort)));
+        model.addAttribute("returned",
+                expenseService.getExpenses(user, List.of(ExpenseStatus.QUERIES_RAISED), search, startDate, endDate,
+                        categoryId,
+                        PageRequest.of(returnedPage, pageSize, sort)));
+        model.addAttribute("rejected",
+                expenseService.getExpenses(user, List.of(ExpenseStatus.REJECTED), search, startDate, endDate,
+                        categoryId,
+                        PageRequest.of(rejectedPage, pageSize, sort)));
+        return "manager/dashboard";
+    }
+
+    @GetMapping("/admin/approvals")
+    @PreAuthorize("hasAnyRole('ACCOUNTANT', 'SUPERVISOR', 'ADMIN')")
+    public String adminApprovals(@AuthenticationPrincipal UserDetails userDetails, Model model,
+            @RequestParam(defaultValue = "0") int submittedPage,
+            @RequestParam(defaultValue = "0") int approvedPage,
+            @RequestParam(defaultValue = "0") int rejectedPage,
+            @RequestParam(defaultValue = "0") int submittedIncomePage,
+            @RequestParam(defaultValue = "0") int approvedIncomePage,
+            @RequestParam(defaultValue = "0") int rejectedIncomePage,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) LocalDate startDate,
+            @RequestParam(required = false) LocalDate endDate,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(defaultValue = "date") String sortField,
+            @RequestParam(defaultValue = "DESC") String sortDir) {
+
+        int pageSize = 5;
+        Sort sort = sortDir.equalsIgnoreCase("ASC") ? Sort.by(sortField).ascending() : Sort.by(sortField).descending();
+
+        model.addAttribute("search", search);
+        model.addAttribute("startDate", startDate);
+        model.addAttribute("endDate", endDate);
+        model.addAttribute("categoryId", categoryId);
+        model.addAttribute("sortField", sortField);
+        model.addAttribute("sortDir", sortDir);
+        model.addAttribute("categories", categoryService.findCategoriesByType(com.mushroom.expense.entity.TransactionType.EXPENSE));
+
+        model.addAttribute("submittedExpenses",
+                expenseService.getExpenses(null, List.of(ExpenseStatus.SUBMITTED), search, startDate, endDate,
+                        categoryId,
+                        PageRequest.of(submittedPage, pageSize, sort)));
+        model.addAttribute("approvedExpenses",
+                expenseService.getExpenses(null, List.of(ExpenseStatus.APPROVED), search, startDate, endDate,
+                        categoryId,
+                        PageRequest.of(approvedPage, pageSize, sort)));
+        model.addAttribute("rejectedExpenses",
+                expenseService.getExpenses(null, List.of(ExpenseStatus.REJECTED), search, startDate, endDate,
+                        categoryId,
+                        PageRequest.of(rejectedPage, pageSize, sort)));
+        model.addAttribute("submittedIncomes",
+                incomeService.getIncomes(null, List.of(IncomeStatus.SUBMITTED), search, startDate, endDate,
+                        categoryId,
+                        PageRequest.of(submittedIncomePage, pageSize, sort)));
+        model.addAttribute("approvedIncomes",
+                incomeService.getIncomes(null, List.of(IncomeStatus.APPROVED), search, startDate, endDate,
+                        categoryId,
+                        PageRequest.of(approvedIncomePage, pageSize, sort)));
+        model.addAttribute("rejectedIncomes",
+                incomeService.getIncomes(null, List.of(IncomeStatus.REJECTED), search, startDate, endDate,
+                        categoryId,
+                        PageRequest.of(rejectedIncomePage, pageSize, sort)));
+        return "accountant/dashboard";
+    }
+
     // --- Manager Actions ---
 
     @GetMapping("/expense/new")
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ACCOUNTANT', 'SUPERVISOR', 'ADMIN')")
     public String newExpenseForm(Model model) {
         Expense expense = new Expense();
         expense.setDate(LocalDate.now());
         model.addAttribute("expense", expense);
-        model.addAttribute("categories", categoryService.findAllCategories());
+        model.addAttribute("categories", categoryService.findCategoriesByType(com.mushroom.expense.entity.TransactionType.EXPENSE));
         model.addAttribute("paymentModes", PaymentMode.values());
         return "expense_form";
     }
 
     @PostMapping("/expense")
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ACCOUNTANT', 'SUPERVISOR', 'ADMIN')")
     public String saveExpense(@ModelAttribute Expense expense,
             @RequestParam("receiptFiles") List<MultipartFile> files,
             @RequestParam(value = "deleteAttachmentIds", required = false) List<Long> deleteAttachmentIds,
@@ -171,11 +283,11 @@ public class ExpenseController {
         }
 
         expenseService.saveExpense(expenseToSave, files, deleteAttachmentIds, deletePrimaryImage);
-        return "redirect:/dashboard";
+        return "redirect:/my-expenses";
     }
 
     @PostMapping("/expense/submit/{id}")
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ACCOUNTANT', 'SUPERVISOR', 'ADMIN')")
     public String submitExpense(@PathVariable Long id,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) LocalDate startDate,
@@ -184,15 +296,15 @@ public class ExpenseController {
             @RequestParam(defaultValue = "date") String sortField,
             @RequestParam(defaultValue = "DESC") String sortDir) {
         expenseService.updateExpenseStatus(id, ExpenseStatus.SUBMITTED);
-        return buildRedirectUrl(search, startDate, endDate, categoryId, sortField, sortDir);
+        return buildMyExpensesRedirectUrl(search, startDate, endDate, categoryId, sortField, sortDir);
     }
 
     @GetMapping("/expense/edit/{id}")
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ACCOUNTANT', 'SUPERVISOR', 'ADMIN')")
     public String editExpenseForm(@PathVariable Long id, Model model) {
         Expense expense = expenseService.findById(id).orElseThrow();
         model.addAttribute("expense", expense);
-        model.addAttribute("categories", categoryService.findAllCategories());
+        model.addAttribute("categories", categoryService.findCategoriesByType(com.mushroom.expense.entity.TransactionType.EXPENSE));
         model.addAttribute("subCategories",
                 categoryService.findSubCategoriesByCategoryId(expense.getCategory().getId()));
         model.addAttribute("paymentModes", PaymentMode.values());
@@ -200,7 +312,7 @@ public class ExpenseController {
     }
 
     @GetMapping("/expense/delete/{id}")
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ACCOUNTANT', 'SUPERVISOR', 'ADMIN')")
     public String deleteExpense(@PathVariable Long id,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) LocalDate startDate,
@@ -209,11 +321,11 @@ public class ExpenseController {
             @RequestParam(defaultValue = "date") String sortField,
             @RequestParam(defaultValue = "DESC") String sortDir) {
         expenseService.deleteExpense(id);
-        return buildRedirectUrl(search, startDate, endDate, categoryId, sortField, sortDir);
+        return buildMyExpensesRedirectUrl(search, startDate, endDate, categoryId, sortField, sortDir);
     }
 
     @DeleteMapping("/expense/attachment/{id}")
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ACCOUNTANT', 'SUPERVISOR', 'ADMIN')")
     @ResponseBody
     public String deleteAttachment(@PathVariable Long id) {
         expenseService.deleteAttachment(id);
@@ -286,6 +398,22 @@ public class ExpenseController {
         return url.toString();
     }
 
+    private String buildMyExpensesRedirectUrl(String search, LocalDate startDate, LocalDate endDate, Long categoryId,
+            String sortField, String sortDir) {
+        StringBuilder url = new StringBuilder("redirect:/my-expenses?");
+        if (search != null && !search.isEmpty())
+            url.append("search=").append(search).append("&");
+        if (startDate != null)
+            url.append("startDate=").append(startDate).append("&");
+        if (endDate != null)
+            url.append("endDate=").append(endDate).append("&");
+        if (categoryId != null)
+            url.append("categoryId=").append(categoryId).append("&");
+        url.append("sortField=").append(sortField).append("&");
+        url.append("sortDir=").append(sortDir);
+        return url.toString();
+    }
+
     @GetMapping("/expense/view/{id}")
     public String viewExpense(@PathVariable Long id, Model model, @AuthenticationPrincipal UserDetails userDetails) {
         Expense expense = expenseService.findById(id).orElseThrow();
@@ -294,6 +422,7 @@ public class ExpenseController {
         model.addAttribute("expense", expense);
         model.addAttribute("comments", expenseService.getComments(id));
         model.addAttribute("userRole", user.getRole());
+        model.addAttribute("isOwner", expense.getUser().getId().equals(user.getId()));
         return "expense_view";
     }
 
@@ -318,7 +447,7 @@ public class ExpenseController {
             Page<Expense> page = expenseService.getExpenses(user, List.of(ExpenseStatus.values()), search, startDate,
                     endDate, categoryId, pageable);
             expenses = page.getContent();
-        } else if (role.equals("ROLE_ACCOUNTANT") || role.equals("ROLE_SUPERVISOR")) {
+        } else if (role.equals("ROLE_ACCOUNTANT") || role.equals("ROLE_SUPERVISOR") || role.equals("ROLE_ADMIN")) {
             Page<Expense> page = expenseService.getExpenses(null,
                     List.of(ExpenseStatus.SUBMITTED, ExpenseStatus.APPROVED, ExpenseStatus.REJECTED), search, startDate,
                     endDate, categoryId, pageable);

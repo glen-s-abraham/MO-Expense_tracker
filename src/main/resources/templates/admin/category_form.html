@@ -20,6 +20,13 @@
                             <input type="text" class="form-control" id="name" th:field="*{name}" required>
                         </div>
                         
+                        <div class="mb-3">
+                            <label for="type" class="form-label">Type</label>
+                            <select class="form-select" id="type" th:field="*{type}" required>
+                                <option th:each="t : ${types}" th:value="${t}" th:text="${t}"></option>
+                            </select>
+                        </div>
+                        
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary">Save Category</button>
                             <a href="/admin/categories" class="btn btn-outline-secondary">Cancel</a>

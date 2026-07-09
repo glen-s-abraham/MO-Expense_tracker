@@ -18,6 +18,7 @@
                     <tr>
                         <th>ID</th>
                         <th>Name</th>
+                        <th>Type</th>
                         <th>Actions</th>
                     </tr>
                     </thead>
@@ -25,6 +26,7 @@
                     <tr th:each="category : ${categories}">
                         <td th:text="${category.id}">1</td>
                         <td th:text="${category.name}">Raw Materials</td>
+                        <td th:text="${category.type}">EXPENSE</td>
                         <td>
                             <a th:href="@{/admin/categories/edit/{id}(id=${category.id})}" class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></a>
                             <a th:href="@{/admin/categories/delete/{id}(id=${category.id})}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure?')"><i class="fas fa-trash"></i></a>
