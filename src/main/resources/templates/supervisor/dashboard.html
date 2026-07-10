@@ -224,7 +224,7 @@
                                 </li>
                                 <li class="page-item" th:each="i : ${#numbers.sequence(0, submittedExpenses.totalPages - 1)}"
                                     th:classappend="${submittedExpenses.number == i} ? 'active'">
-                                    <a class="page-link" th:href="@{/dashboard(submittedIncomePage=${i}, search=${search}, startDate=${startDate}, endDate=${endDate}, categoryId=${categoryId}, sortField=${sortField}, sortDir=${sortDir})}" th:text="${i + 1}">1</a>
+                                    <a class="page-link" th:href="@{/dashboard(submittedPage=${i}, search=${search}, startDate=${startDate}, endDate=${endDate}, categoryId=${categoryId}, sortField=${sortField}, sortDir=${sortDir})}" th:text="${i + 1}">1</a>
                                 </li>
                                 <li class="page-item" th:classappend="${submittedExpenses.last} ? 'disabled'">
                                     <a class="page-link" th:href="@{/dashboard(submittedPage=${submittedExpenses.number + 1}, search=${search}, startDate=${startDate}, endDate=${endDate}, categoryId=${categoryId}, sortField=${sortField}, sortDir=${sortDir})}">Next</a>
@@ -364,7 +364,7 @@
                                 </li>
                                 <li class="page-item" th:each="i : ${#numbers.sequence(0, approvedExpenses.totalPages - 1)}"
                                     th:classappend="${approvedExpenses.number == i} ? 'active'">
-                                    <a class="page-link" th:href="@{/dashboard(approvedIncomePage=${i}, search=${search}, startDate=${startDate}, endDate=${endDate}, categoryId=${categoryId}, sortField=${sortField}, sortDir=${sortDir})}" th:text="${i + 1}">1</a>
+                                    <a class="page-link" th:href="@{/dashboard(approvedPage=${i}, search=${search}, startDate=${startDate}, endDate=${endDate}, categoryId=${categoryId}, sortField=${sortField}, sortDir=${sortDir})}" th:text="${i + 1}">1</a>
                                 </li>
                                 <li class="page-item" th:classappend="${approvedExpenses.last} ? 'disabled'">
                                     <a class="page-link" th:href="@{/dashboard(approvedPage=${approvedExpenses.number + 1}, search=${search}, startDate=${startDate}, endDate=${endDate}, categoryId=${categoryId}, sortField=${sortField}, sortDir=${sortDir})}">Next</a>
@@ -504,7 +504,7 @@
                                 </li>
                                 <li class="page-item" th:each="i : ${#numbers.sequence(0, rejectedExpenses.totalPages - 1)}"
                                     th:classappend="${rejectedExpenses.number == i} ? 'active'">
-                                    <a class="page-link" th:href="@{/dashboard(rejectedIncomePage=${i}, search=${search}, startDate=${startDate}, endDate=${endDate}, categoryId=${categoryId}, sortField=${sortField}, sortDir=${sortDir})}" th:text="${i + 1}">1</a>
+                                    <a class="page-link" th:href="@{/dashboard(rejectedPage=${i}, search=${search}, startDate=${startDate}, endDate=${endDate}, categoryId=${categoryId}, sortField=${sortField}, sortDir=${sortDir})}" th:text="${i + 1}">1</a>
                                 </li>
                                 <li class="page-item" th:classappend="${rejectedExpenses.last} ? 'disabled'">
                                     <a class="page-link" th:href="@{/dashboard(rejectedPage=${rejectedExpenses.number + 1}, search=${search}, startDate=${startDate}, endDate=${endDate}, categoryId=${categoryId}, sortField=${sortField}, sortDir=${sortDir})}">Next</a>

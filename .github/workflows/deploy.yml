@@ -1,0 +1,40 @@
+name: Build and Deploy Expense Tracker
+
+on:
+  workflow_dispatch: 
+  push:
+    branches: [ "master" ]
+
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted
+
+    steps:         
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # --- Set profile to PROD ---
+      - name: Set Profile to Prod in Properties
+        run: |
+          # Searches for the active profile line and replaces it with 'prod'
+          sed -i 's/^spring.profiles.active=.*/spring.profiles.active=prod/' src/main/resources/application.properties
+          
+          # Prints the updated line to your GitHub Action logs so you can verify it worked
+          cat src/main/resources/application.properties | grep spring.profiles.active
+      # ---------------------------
+
+      - name: Build with Maven
+        run: mvn clean package -DskipTests
+
+      - name: Copy Jar to Deployment Folder
+        run: |
+          sudo mkdir -p /opt/expense-tracker
+          sudo cp target/expense-tracker-0.0.1-SNAPSHOT.jar /opt/expense-tracker/expense-tracker-0.0.1-SNAPSHOT.jar
+
+      - name: Restart Service
+        run: |
+          sudo systemctl restart expense-tracker.service
+          
+      - name: Check Status
+        run: |
+          systemctl status expense-tracker.service --no-pager
