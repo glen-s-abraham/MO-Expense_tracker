@@ -106,60 +106,45 @@
 
         <!-- Main KPI Cards -->
         <div class="row g-4 mb-4">
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="card kpi-card bg-gradient-income h-100">
-                    <div class="card-body px-3">
+                    <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
-                            <div class="pe-2">
-                                <p class="text-white-50 mb-1 fw-medium text-uppercase text-xs text-nowrap">Sales</p>
-                                <h4 class="mb-0 fw-bold text-nowrap">₹&nbsp;<span th:text="${#numbers.formatDecimal(globalSalesIncome, 1, 'COMMA', 2, 'POINT')}">0.00</span></h4>
+                            <div>
+                                <p class="text-white-50 mb-1 fw-medium text-uppercase text-xs">Total Income</p>
+                                <h3 class="mb-0 fw-bold">₹ <span th:text="${#numbers.formatDecimal(globalTotalIncome, 1, 'COMMA', 2, 'POINT')}">0.00</span></h3>
                             </div>
-                            <div class="bg-white bg-opacity-25 rounded-circle p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 42px; height: 42px;">
-                                <i class="fas fa-shopping-cart fa-lg"></i>
+                            <div class="bg-white bg-opacity-25 rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                <i class="fas fa-arrow-trend-up fa-lg"></i>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card kpi-card bg-gradient-income h-100">
-                    <div class="card-body px-3">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="pe-2">
-                                <p class="text-white-50 mb-1 fw-medium text-uppercase text-xs text-nowrap">Capital & Other</p>
-                                <h4 class="mb-0 fw-bold text-nowrap">₹&nbsp;<span th:text="${#numbers.formatDecimal(globalCapitalLoansOtherIncome, 1, 'COMMA', 2, 'POINT')}">0.00</span></h4>
-                            </div>
-                            <div class="bg-white bg-opacity-25 rounded-circle p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 42px; height: 42px;">
-                                <i class="fas fa-hand-holding-usd fa-lg"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="card kpi-card bg-gradient-expense h-100">
-                    <div class="card-body px-3">
+                    <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
-                            <div class="pe-2">
-                                <p class="text-white-50 mb-1 fw-medium text-uppercase text-xs text-nowrap">Total Expenses</p>
-                                <h4 class="mb-0 fw-bold text-nowrap">₹&nbsp;<span th:text="${#numbers.formatDecimal(globalTotalExpense, 1, 'COMMA', 2, 'POINT')}">0.00</span></h4>
+                            <div>
+                                <p class="text-white-50 mb-1 fw-medium text-uppercase text-xs">Total Expenses</p>
+                                <h3 class="mb-0 fw-bold">₹ <span th:text="${#numbers.formatDecimal(globalTotalExpense, 1, 'COMMA', 2, 'POINT')}">0.00</span></h3>
                             </div>
-                            <div class="bg-white bg-opacity-25 rounded-circle p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 42px; height: 42px;">
+                            <div class="bg-white bg-opacity-25 rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
                                 <i class="fas fa-arrow-trend-down fa-lg"></i>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="card kpi-card bg-gradient-balance h-100">
-                    <div class="card-body px-3">
+                    <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
-                            <div class="pe-2">
-                                <p class="text-white-50 mb-1 fw-medium text-uppercase text-xs text-nowrap">Net Balance</p>
-                                <h4 class="mb-0 fw-bold text-nowrap">₹&nbsp;<span th:text="${#numbers.formatDecimal(globalNetBalance, 1, 'COMMA', 2, 'POINT')}">0.00</span></h4>
+                            <div>
+                                <p class="text-white-50 mb-1 fw-medium text-uppercase text-xs">Net Balance</p>
+                                <h3 class="mb-0 fw-bold">₹ <span th:text="${#numbers.formatDecimal(globalNetBalance, 1, 'COMMA', 2, 'POINT')}">0.00</span></h3>
                             </div>
-                            <div class="bg-white bg-opacity-25 rounded-circle p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 42px; height: 42px;">
+                            <div class="bg-white bg-opacity-25 rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
                                 <i class="fas fa-wallet fa-lg"></i>
                             </div>
                         </div>
@@ -168,35 +153,27 @@
             </div>
         </div>
 
-        <!-- Asset Cards Row -->
-        <div class="row g-4">
-            <div class="col-md-6">
-                <div class="card kpi-card bg-white h-100 border-start border-4 border-info">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <p class="text-muted mb-1 fw-medium text-uppercase text-xs">Total Fixed Assets</p>
-                                <h3 class="mb-0 fw-bold text-gray-800">₹ <span th:text="${#numbers.formatDecimal(globalTotalFixedAssets, 1, 'COMMA', 2, 'POINT')}">0.00</span></h3>
-                            </div>
-                            <div class="bg-info bg-opacity-10 text-info rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                                <i class="fas fa-building fa-lg"></i>
-                            </div>
-                        </div>
+        <!-- Income Category Aggregates (Lifetime) -->
+        <h5 class="text-muted mt-4 mb-3">Lifetime Income Categories</h5>
+        <div class="row g-3 mb-4">
+            <div class="col-md-3" th:each="cat : ${globalIncomesByCategory}">
+                <div class="card border-0 shadow-sm rounded-3 bg-white h-100 border-start border-4 border-success">
+                    <div class="card-body py-3 px-3">
+                        <span class="text-muted small fw-bold text-uppercase text-nowrap" th:text="${cat[0]}">Category</span>
+                        <h5 class="text-success mb-0 mt-1 text-nowrap">₹&nbsp;<span th:text="${#numbers.formatDecimal(cat[1], 1, 'COMMA', 2, 'POINT')}">0.00</span></h5>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
-                <div class="card kpi-card bg-white h-100 border-start border-4 border-warning">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <p class="text-muted mb-1 fw-medium text-uppercase text-xs">Total Current Assets</p>
-                                <h3 class="mb-0 fw-bold text-gray-800">₹ <span th:text="${#numbers.formatDecimal(globalTotalCurrentAssets, 1, 'COMMA', 2, 'POINT')}">0.00</span></h3>
-                            </div>
-                            <div class="bg-warning bg-opacity-10 text-warning rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                                <i class="fas fa-boxes fa-lg"></i>
-                            </div>
-                        </div>
+        </div>
+
+        <!-- Expense Category Aggregates (Lifetime) -->
+        <h5 class="text-muted mt-4 mb-3">Lifetime Expense Categories</h5>
+        <div class="row g-3">
+            <div class="col-md-3" th:each="cat : ${globalExpensesByCategory}">
+                <div class="card border-0 shadow-sm rounded-3 bg-white h-100 border-start border-4 border-danger">
+                    <div class="card-body py-3 px-3">
+                        <span class="text-muted small fw-bold text-uppercase text-nowrap" th:text="${cat[0]}">Category</span>
+                        <h5 class="text-danger mb-0 mt-1 text-nowrap">₹&nbsp;<span th:text="${#numbers.formatDecimal(cat[1], 1, 'COMMA', 2, 'POINT')}">0.00</span></h5>
                     </div>
                 </div>
             </div>
@@ -254,23 +231,15 @@
 
                 <!-- Monthly Mini KPIs -->
                 <div class="row g-3 mb-4">
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <div class="card border-0 shadow-sm rounded-3">
                             <div class="card-body py-3 px-3">
-                                <span class="text-muted small fw-bold text-uppercase text-nowrap">Monthly Sales</span>
-                                <h5 class="text-success mb-0 mt-1 text-nowrap">₹&nbsp;<span th:text="${#numbers.formatDecimal(monthlySalesIncome, 1, 'COMMA', 2, 'POINT')}">0.00</span></h5>
+                                <span class="text-muted small fw-bold text-uppercase text-nowrap">Monthly Income</span>
+                                <h5 class="text-success mb-0 mt-1 text-nowrap">₹&nbsp;<span th:text="${#numbers.formatDecimal(monthlyTotalIncome, 1, 'COMMA', 2, 'POINT')}">0.00</span></h5>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="card border-0 shadow-sm rounded-3">
-                            <div class="card-body py-3 px-3">
-                                <span class="text-muted small fw-bold text-uppercase text-nowrap">Capital & Other</span>
-                                <h5 class="text-success mb-0 mt-1 text-nowrap">₹&nbsp;<span th:text="${#numbers.formatDecimal(monthlyCapitalLoansOtherIncome, 1, 'COMMA', 2, 'POINT')}">0.00</span></h5>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <div class="card border-0 shadow-sm rounded-3">
                             <div class="card-body py-3 px-3">
                                 <span class="text-muted small fw-bold text-uppercase text-nowrap">Monthly Expense</span>
@@ -278,11 +247,39 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <div class="card border-0 shadow-sm rounded-3">
                             <div class="card-body py-3 px-3">
                                 <span class="text-muted small fw-bold text-uppercase text-nowrap">Monthly Net</span>
                                 <h5 class="text-primary mb-0 mt-1 text-nowrap">₹&nbsp;<span th:text="${#numbers.formatDecimal(monthlyNetBalance, 1, 'COMMA', 2, 'POINT')}">0.00</span></h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Income Category Aggregates (Monthly) -->
+                <h6 class="text-muted mt-4 mb-3">Monthly Income Breakdown</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3 col-sm-4" th:each="cat : ${monthlyIncomesByCategory}">
+                        <div class="card border-0 shadow-sm rounded-3 bg-white h-100 border-start border-3 border-success category-card" style="cursor: pointer;"
+                             th:data-type="income" th:data-category="${cat[0]}" th:data-start="${monthlyStartDate}" th:data-end="${monthlyEndDate}" onclick="showCategoryDetails(this)">
+                            <div class="card-body py-2 px-3">
+                                <span class="text-muted" style="font-size: 0.75rem; font-weight: bold; text-transform: uppercase;" th:text="${cat[0]}">Category</span>
+                                <div class="text-success mb-0 mt-1" style="font-size: 1rem; font-weight: bold;">₹&nbsp;<span th:text="${#numbers.formatDecimal(cat[1], 1, 'COMMA', 2, 'POINT')}">0.00</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Expense Category Aggregates (Monthly) -->
+                <h6 class="text-muted mt-4 mb-3">Monthly Expense Breakdown</h6>
+                <div class="row g-3 mb-5">
+                    <div class="col-md-3 col-sm-4" th:each="cat : ${monthlyExpensesByCategory}">
+                        <div class="card border-0 shadow-sm rounded-3 bg-white h-100 border-start border-3 border-danger category-card" style="cursor: pointer;"
+                             th:data-type="expense" th:data-category="${cat[0]}" th:data-start="${monthlyStartDate}" th:data-end="${monthlyEndDate}" onclick="showCategoryDetails(this)">
+                            <div class="card-body py-2 px-3">
+                                <span class="text-muted" style="font-size: 0.75rem; font-weight: bold; text-transform: uppercase;" th:text="${cat[0]}">Category</span>
+                                <div class="text-danger mb-0 mt-1" style="font-size: 1rem; font-weight: bold;">₹&nbsp;<span th:text="${#numbers.formatDecimal(cat[1], 1, 'COMMA', 2, 'POINT')}">0.00</span></div>
                             </div>
                         </div>
                     </div>
@@ -362,23 +359,15 @@
 
                 <!-- Yearly Mini KPIs -->
                 <div class="row g-3 mb-4">
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <div class="card border-0 shadow-sm rounded-3">
                             <div class="card-body py-3 px-3">
-                                <span class="text-muted small fw-bold text-uppercase text-nowrap">Yearly Sales</span>
-                                <h5 class="text-success mb-0 mt-1 text-nowrap">₹&nbsp;<span th:text="${#numbers.formatDecimal(fySalesIncome, 1, 'COMMA', 2, 'POINT')}">0.00</span></h5>
+                                <span class="text-muted small fw-bold text-uppercase text-nowrap">Yearly Income</span>
+                                <h5 class="text-success mb-0 mt-1 text-nowrap">₹&nbsp;<span th:text="${#numbers.formatDecimal(fyTotalIncome, 1, 'COMMA', 2, 'POINT')}">0.00</span></h5>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="card border-0 shadow-sm rounded-3">
-                            <div class="card-body py-3 px-3">
-                                <span class="text-muted small fw-bold text-uppercase text-nowrap">Capital & Other</span>
-                                <h5 class="text-success mb-0 mt-1 text-nowrap">₹&nbsp;<span th:text="${#numbers.formatDecimal(fyCapitalLoansOtherIncome, 1, 'COMMA', 2, 'POINT')}">0.00</span></h5>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <div class="card border-0 shadow-sm rounded-3">
                             <div class="card-body py-3 px-3">
                                 <span class="text-muted small fw-bold text-uppercase text-nowrap">Yearly Expense</span>
@@ -386,11 +375,39 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <div class="card border-0 shadow-sm rounded-3">
                             <div class="card-body py-3 px-3">
                                 <span class="text-muted small fw-bold text-uppercase text-nowrap">Yearly Net</span>
                                 <h5 class="text-primary mb-0 mt-1 text-nowrap">₹&nbsp;<span th:text="${#numbers.formatDecimal(fyNetBalance, 1, 'COMMA', 2, 'POINT')}">0.00</span></h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Income Category Aggregates (Yearly) -->
+                <h6 class="text-muted mt-4 mb-3">Yearly Income Breakdown</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3 col-sm-4" th:each="cat : ${fyIncomesByCategory}">
+                        <div class="card border-0 shadow-sm rounded-3 bg-white h-100 border-start border-3 border-success category-card" style="cursor: pointer;"
+                             th:data-type="income" th:data-category="${cat[0]}" th:data-start="${fyStartDate}" th:data-end="${fyEndDate}" onclick="showCategoryDetails(this)">
+                            <div class="card-body py-2 px-3">
+                                <span class="text-muted" style="font-size: 0.75rem; font-weight: bold; text-transform: uppercase;" th:text="${cat[0]}">Category</span>
+                                <div class="text-success mb-0 mt-1" style="font-size: 1rem; font-weight: bold;">₹&nbsp;<span th:text="${#numbers.formatDecimal(cat[1], 1, 'COMMA', 2, 'POINT')}">0.00</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Expense Category Aggregates (Yearly) -->
+                <h6 class="text-muted mt-4 mb-3">Yearly Expense Breakdown</h6>
+                <div class="row g-3 mb-5">
+                    <div class="col-md-3 col-sm-4" th:each="cat : ${fyExpensesByCategory}">
+                        <div class="card border-0 shadow-sm rounded-3 bg-white h-100 border-start border-3 border-danger category-card" style="cursor: pointer;"
+                             th:data-type="expense" th:data-category="${cat[0]}" th:data-start="${fyStartDate}" th:data-end="${fyEndDate}" onclick="showCategoryDetails(this)">
+                            <div class="card-body py-2 px-3">
+                                <span class="text-muted" style="font-size: 0.75rem; font-weight: bold; text-transform: uppercase;" th:text="${cat[0]}">Category</span>
+                                <div class="text-danger mb-0 mt-1" style="font-size: 1rem; font-weight: bold;">₹&nbsp;<span th:text="${#numbers.formatDecimal(cat[1], 1, 'COMMA', 2, 'POINT')}">0.00</span></div>
                             </div>
                         </div>
                     </div>
@@ -638,5 +655,107 @@
     initDoughnutChart(ctxYearlyExpenseCat, fyExpenseCategories, fyExpenseAmounts, expenseColors);
 
 </script>
+    <!-- Category Drilldown Modal -->
+    <div class="modal fade" id="categoryDrilldownModal" tabindex="-1" aria-labelledby="categoryDrilldownModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-light border-bottom-0">
+                    <h5 class="modal-title fw-bold" id="categoryDrilldownModalLabel">Category Breakdown</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div id="drilldownLoading" class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                    <div id="drilldownContent" class="table-responsive d-none">
+                        <table class="table table-hover table-striped align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col" class="ps-4">Date</th>
+                                    <th scope="col">Description</th>
+                                    <th scope="col" class="text-end pe-4">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="drilldownTableBody">
+                                <!-- Data populated via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-top-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        function showCategoryDetails(element) {
+            const type = element.getAttribute('data-type');
+            const category = element.getAttribute('data-category');
+            const startDate = element.getAttribute('data-start');
+            const endDate = element.getAttribute('data-end');
+            
+            document.getElementById('categoryDrilldownModalLabel').innerText = category + ' Breakdown';
+            
+            const modal = new bootstrap.Modal(document.getElementById('categoryDrilldownModal'));
+            modal.show();
+            
+            document.getElementById('drilldownLoading').classList.remove('d-none');
+            document.getElementById('drilldownContent').classList.add('d-none');
+            
+            fetch(`/api/dashboard/category-breakdown?type=${type}&category=${encodeURIComponent(category)}&startDate=${startDate}&endDate=${endDate}`)
+                .then(response => response.json())
+                .then(data => {
+                    const tbody = document.getElementById('drilldownTableBody');
+                    tbody.innerHTML = '';
+                    
+                    if (data.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted py-4">No data found</td></tr>';
+                    } else {
+                        data.forEach(item => {
+                            const tr = document.createElement('tr');
+                            
+                            const tdDate = document.createElement('td');
+                            tdDate.className = 'ps-4 text-muted small';
+                            tdDate.textContent = item.date;
+                            
+                            const tdDesc = document.createElement('td');
+                            tdDesc.className = 'fw-medium text-dark';
+                            tdDesc.textContent = item.description;
+                            
+                            const tdAmount = document.createElement('td');
+                            tdAmount.className = 'text-end pe-4 text-danger fw-bold';
+                            // Format number nicely
+                            const formattedAmt = new Intl.NumberFormat('en-IN', {
+                                style: 'currency',
+                                currency: 'INR',
+                                minimumFractionDigits: 2
+                            }).format(item.amount);
+                            tdAmount.textContent = formattedAmt;
+                            
+                            tr.appendChild(tdDate);
+                            tr.appendChild(tdDesc);
+                            tr.appendChild(tdAmount);
+                            tbody.appendChild(tr);
+                        });
+                    }
+                    
+                    document.getElementById('drilldownLoading').classList.add('d-none');
+                    document.getElementById('drilldownContent').classList.remove('d-none');
+                })
+                .catch(error => {
+                    console.error('Error fetching details:', error);
+                    document.getElementById('drilldownTableBody').innerHTML = '<tr><td colspan="3" class="text-center text-danger py-4">Error loading data.</td></tr>';
+                    document.getElementById('drilldownLoading').classList.add('d-none');
+                    document.getElementById('drilldownContent').classList.remove('d-none');
+                });
+        }
+    </script>
 </body>
 </html>

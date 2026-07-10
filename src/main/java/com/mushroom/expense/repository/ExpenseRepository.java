@@ -31,4 +31,6 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long>, JpaSpec
 
     @org.springframework.data.jpa.repository.Query("SELECT e.date, SUM(e.amount) FROM Expense e WHERE e.status = :status AND e.date >= :startDate AND e.date <= :endDate GROUP BY e.date ORDER BY e.date")
     List<Object[]> findDailySumByDateBetween(@org.springframework.data.repository.query.Param("status") ExpenseStatus status, @org.springframework.data.repository.query.Param("startDate") java.time.LocalDate startDate, @org.springframework.data.repository.query.Param("endDate") java.time.LocalDate endDate);
+
+    List<Expense> findByCategoryNameAndStatusAndDateBetweenOrderByDateDesc(String categoryName, ExpenseStatus status, java.time.LocalDate startDate, java.time.LocalDate endDate);
 }

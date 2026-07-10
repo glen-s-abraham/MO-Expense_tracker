@@ -66,43 +66,16 @@ public class DashboardController {
         double globalTotalExpense = globalExpensesByCategory.stream().mapToDouble(obj -> (Double) obj[1]).sum();
         double globalTotalIncome = globalIncomesByCategory.stream().mapToDouble(obj -> (Double) obj[1]).sum();
 
-        double globalTotalFixedAssets = 0.0;
-        double globalTotalCurrentAssets = 0.0;
+        // Expose all categories for the Lifetime section
+        globalExpensesByCategory.sort((a, b) -> Double.compare((Double) b[1], (Double) a[1]));
+        model.addAttribute("globalExpensesByCategory", globalExpensesByCategory);
 
-        for (Object[] obj : globalExpensesByCategory) {
-            String catName = ((String) obj[0]).toLowerCase();
-            Double amt = (Double) obj[1];
-            if (catName.contains("equipment") || catName.contains("machinery") || catName.contains("building") || catName.contains("vehicle") || catName.contains("asset") || catName.contains("capital")) {
-                globalTotalFixedAssets += amt;
-            } else if (catName.contains("inventory") || catName.contains("cash") || catName.contains("bank") || catName.contains("receivable")) {
-                globalTotalCurrentAssets += amt;
-            }
-        }
-        double globalSalesIncome = 0.0;
-        double globalCapitalLoansOtherIncome = 0.0;
-        for (Object[] obj : globalIncomesByCategory) {
-            String catName = ((String) obj[0]).toLowerCase();
-            Double amt = (Double) obj[1];
-            if (catName.contains("equipment") || catName.contains("machinery") || catName.contains("building") || catName.contains("vehicle") || catName.contains("asset") || catName.contains("capital")) {
-                globalTotalFixedAssets += amt;
-            } else if (catName.contains("inventory") || catName.contains("cash") || catName.contains("bank") || catName.contains("receivable") || catName.contains("loan")) {
-                globalTotalCurrentAssets += amt;
-            }
-            
-            if (catName.contains("sale")) {
-                globalSalesIncome += amt;
-            } else {
-                globalCapitalLoansOtherIncome += amt;
-            }
-        }
+        globalIncomesByCategory.sort((a, b) -> Double.compare((Double) b[1], (Double) a[1]));
+        model.addAttribute("globalIncomesByCategory", globalIncomesByCategory);
 
         model.addAttribute("globalTotalExpense", globalTotalExpense);
         model.addAttribute("globalTotalIncome", globalTotalIncome);
-        model.addAttribute("globalSalesIncome", globalSalesIncome);
-        model.addAttribute("globalCapitalLoansOtherIncome", globalCapitalLoansOtherIncome);
         model.addAttribute("globalNetBalance", globalTotalIncome - globalTotalExpense);
-        model.addAttribute("globalTotalFixedAssets", globalTotalFixedAssets);
-        model.addAttribute("globalTotalCurrentAssets", globalTotalCurrentAssets);
 
 
         // -------------------------------------------------------------
@@ -118,23 +91,18 @@ public class DashboardController {
         double monthlyTotalExpense = monthlyExpensesByCategory.stream().mapToDouble(obj -> (Double) obj[1]).sum();
         double monthlyTotalIncome = monthlyIncomesByCategory.stream().mapToDouble(obj -> (Double) obj[1]).sum();
 
-        double monthlySalesIncome = 0.0;
-        double monthlyCapitalLoansOtherIncome = 0.0;
-        for (Object[] obj : monthlyIncomesByCategory) {
-            String catName = ((String) obj[0]).toLowerCase();
-            Double amt = (Double) obj[1];
-            if (catName.contains("sale")) {
-                monthlySalesIncome += amt;
-            } else {
-                monthlyCapitalLoansOtherIncome += amt;
-            }
-        }
-
         model.addAttribute("monthlyTotalExpense", monthlyTotalExpense);
         model.addAttribute("monthlyTotalIncome", monthlyTotalIncome);
-        model.addAttribute("monthlySalesIncome", monthlySalesIncome);
-        model.addAttribute("monthlyCapitalLoansOtherIncome", monthlyCapitalLoansOtherIncome);
         model.addAttribute("monthlyNetBalance", monthlyTotalIncome - monthlyTotalExpense);
+        
+        monthlyExpensesByCategory.sort((a, b) -> Double.compare((Double) b[1], (Double) a[1]));
+        model.addAttribute("monthlyExpensesByCategory", monthlyExpensesByCategory);
+        
+        monthlyIncomesByCategory.sort((a, b) -> Double.compare((Double) b[1], (Double) a[1]));
+        model.addAttribute("monthlyIncomesByCategory", monthlyIncomesByCategory);
+        
+        model.addAttribute("monthlyStartDate", startDate.toString());
+        model.addAttribute("monthlyEndDate", endDate.toString());
         
         model.addAttribute("selectedYear", year);
         model.addAttribute("selectedMonth", month);
@@ -223,23 +191,18 @@ public class DashboardController {
         double fyTotalExpense = fyExpensesByCategory.stream().mapToDouble(obj -> (Double) obj[1]).sum();
         double fyTotalIncome = fyIncomesByCategory.stream().mapToDouble(obj -> (Double) obj[1]).sum();
 
-        double fySalesIncome = 0.0;
-        double fyCapitalLoansOtherIncome = 0.0;
-        for (Object[] obj : fyIncomesByCategory) {
-            String catName = ((String) obj[0]).toLowerCase();
-            Double amt = (Double) obj[1];
-            if (catName.contains("sale")) {
-                fySalesIncome += amt;
-            } else {
-                fyCapitalLoansOtherIncome += amt;
-            }
-        }
-
         model.addAttribute("fyTotalExpense", fyTotalExpense);
         model.addAttribute("fyTotalIncome", fyTotalIncome);
-        model.addAttribute("fySalesIncome", fySalesIncome);
-        model.addAttribute("fyCapitalLoansOtherIncome", fyCapitalLoansOtherIncome);
         model.addAttribute("fyNetBalance", fyTotalIncome - fyTotalExpense);
+
+        fyExpensesByCategory.sort((a, b) -> Double.compare((Double) b[1], (Double) a[1]));
+        model.addAttribute("fyExpensesByCategory", fyExpensesByCategory);
+
+        fyIncomesByCategory.sort((a, b) -> Double.compare((Double) b[1], (Double) a[1]));
+        model.addAttribute("fyIncomesByCategory", fyIncomesByCategory);
+
+        model.addAttribute("fyStartDate", fyStartDate.toString());
+        model.addAttribute("fyEndDate", fyEndDate.toString());
 
         // Doughnut Data (Yearly)
         List<String> fyExpenseCategories = new ArrayList<>();
