@@ -34,7 +34,7 @@ public class ExpenseController {
         this.incomeService = incomeService;
     }
 
-    @GetMapping("/dashboard")
+    @GetMapping("/approvals")
     public String dashboard(@AuthenticationPrincipal UserDetails userDetails, Model model,
             @RequestParam(defaultValue = "0") int draftsPage,
             @RequestParam(defaultValue = "0") int pendingPage,
@@ -95,7 +95,7 @@ public class ExpenseController {
                     incomeService.getIncomes(null, List.of(IncomeStatus.REJECTED), search, startDate, endDate,
                             categoryId,
                             PageRequest.of(rejectedIncomePage, pageSize, sort)));
-            return "accountant/dashboard";
+            return "accountant/approvals";
         } else if (role.equals("ROLE_SUPERVISOR")) {
             model.addAttribute("myDrafts",
                     expenseService.getExpenses(user, List.of(ExpenseStatus.DRAFT, ExpenseStatus.QUERIES_RAISED), search,
@@ -125,7 +125,7 @@ public class ExpenseController {
                     incomeService.getIncomes(null, List.of(IncomeStatus.REJECTED), search, startDate, endDate,
                             categoryId,
                             PageRequest.of(rejectedIncomePage, pageSize, sort)));
-            return "supervisor/dashboard";
+            return "supervisor/approvals";
         }
 
         return "dashboard"; // Fallback
@@ -177,7 +177,7 @@ public class ExpenseController {
                 expenseService.getExpenses(user, List.of(ExpenseStatus.REJECTED), search, startDate, endDate,
                         categoryId,
                         PageRequest.of(rejectedPage, pageSize, sort)));
-        return "manager/dashboard";
+        return "manager/approvals";
     }
 
     @GetMapping("/admin/approvals")
@@ -231,7 +231,7 @@ public class ExpenseController {
                 incomeService.getIncomes(null, List.of(IncomeStatus.REJECTED), search, startDate, endDate,
                         categoryId,
                         PageRequest.of(rejectedIncomePage, pageSize, sort)));
-        return "accountant/dashboard";
+        return "accountant/approvals";
     }
 
     // --- Manager Actions ---
@@ -384,7 +384,7 @@ public class ExpenseController {
 
     private String buildRedirectUrl(String search, LocalDate startDate, LocalDate endDate, Long categoryId,
             String sortField, String sortDir) {
-        StringBuilder url = new StringBuilder("redirect:/dashboard?");
+        StringBuilder url = new StringBuilder("redirect:/approvals?");
         if (search != null && !search.isEmpty())
             url.append("search=").append(search).append("&");
         if (startDate != null)

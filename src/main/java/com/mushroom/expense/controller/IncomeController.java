@@ -262,7 +262,7 @@ public class IncomeController {
 
     private String buildAdminApprovalsRedirectUrl(String search, LocalDate startDate, LocalDate endDate, Long categoryId,
             String sortField, String sortDir) {
-        StringBuilder url = new StringBuilder("redirect:/dashboard?");
+        StringBuilder url = new StringBuilder("redirect:/approvals?");
         if (search != null && !search.isEmpty())
             url.append("search=").append(search).append("&");
         if (startDate != null)
