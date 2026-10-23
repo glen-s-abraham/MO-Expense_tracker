@@ -40,4 +40,30 @@ public interface LoanTransactionRepository extends JpaRepository<LoanTransaction
 
     List<LoanTransaction> findByTypeAndStatusAndDateBetweenOrderByDateDesc(
             LoanTransactionType type, IncomeStatus status, LocalDate startDate, LocalDate endDate);
+
+    @Query("SELECT COALESCE(SUM(t.amount), 0.0) FROM LoanTransaction t WHERE t.loan.id = :loanId AND t.type = :type AND t.status = :status AND t.date < :date")
+    Double sumAmountByLoanIdAndTypeAndStatusAndDateBefore(
+            @Param("loanId") Long loanId,
+            @Param("type") LoanTransactionType type,
+            @Param("status") IncomeStatus status,
+            @Param("date") LocalDate date);
+
+    @Query("SELECT COALESCE(SUM(t.amount), 0.0) FROM LoanTransaction t WHERE t.loan.id = :loanId AND t.type = :type AND t.status = :status AND t.date >= :startDate AND t.date <= :endDate")
+    Double sumAmountByLoanIdAndTypeAndStatusAndDateBetween(
+            @Param("loanId") Long loanId,
+            @Param("type") LoanTransactionType type,
+            @Param("status") IncomeStatus status,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate);
+
+    @Query("SELECT COALESCE(SUM(t.amount), 0.0) FROM LoanTransaction t WHERE t.type = :type AND t.status = :status AND t.date < :date")
+    Double sumAmountByTypeAndStatusAndDateBefore(
+            @Param("type") LoanTransactionType type,
+            @Param("status") IncomeStatus status,
+            @Param("date") LocalDate date);
+
+    List<LoanTransaction> findByStatusAndDateBetweenOrderByDateAscIdAsc(
+            IncomeStatus status, LocalDate startDate, LocalDate endDate);
+
+    long countByStatusNotAndDateBetween(IncomeStatus status, LocalDate startDate, LocalDate endDate);
 }

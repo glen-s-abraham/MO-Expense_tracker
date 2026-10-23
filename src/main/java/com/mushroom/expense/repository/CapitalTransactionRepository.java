@@ -34,4 +34,15 @@ public interface CapitalTransactionRepository extends JpaRepository<CapitalTrans
 
     List<CapitalTransaction> findByTypeAndStatusAndDateBetweenOrderByDateDesc(
             CapitalTransactionType type, IncomeStatus status, LocalDate startDate, LocalDate endDate);
+
+    @Query("SELECT COALESCE(SUM(c.amount), 0.0) FROM CapitalTransaction c WHERE c.type = :type AND c.status = :status AND c.date < :date")
+    Double sumAmountByTypeAndStatusAndDateBefore(
+            @Param("type") CapitalTransactionType type,
+            @Param("status") IncomeStatus status,
+            @Param("date") LocalDate date);
+
+    List<CapitalTransaction> findByStatusAndDateBetweenOrderByDateAscIdAsc(
+            IncomeStatus status, LocalDate startDate, LocalDate endDate);
+
+    long countByStatusNotAndDateBetween(IncomeStatus status, LocalDate startDate, LocalDate endDate);
 }

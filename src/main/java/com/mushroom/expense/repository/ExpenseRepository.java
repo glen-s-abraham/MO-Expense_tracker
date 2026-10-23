@@ -33,4 +33,8 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long>, JpaSpec
     List<Object[]> findDailySumByDateBetween(@org.springframework.data.repository.query.Param("status") ExpenseStatus status, @org.springframework.data.repository.query.Param("startDate") java.time.LocalDate startDate, @org.springframework.data.repository.query.Param("endDate") java.time.LocalDate endDate);
 
     List<Expense> findByCategoryNameAndStatusAndDateBetweenOrderByDateDesc(String categoryName, ExpenseStatus status, java.time.LocalDate startDate, java.time.LocalDate endDate);
+
+    List<Expense> findByStatusAndDateBetweenOrderByDateAscIdAsc(ExpenseStatus status, java.time.LocalDate startDate, java.time.LocalDate endDate);
+
+    long countByStatusNotAndDateBetween(ExpenseStatus status, java.time.LocalDate startDate, java.time.LocalDate endDate);
 }

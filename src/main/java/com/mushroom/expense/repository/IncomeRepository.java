@@ -35,4 +35,8 @@ public interface IncomeRepository extends JpaRepository<Income, Long>, JpaSpecif
     List<Income> findByCategoryNameAndStatusAndDateBetweenOrderByDateDesc(String categoryName, IncomeStatus status, java.time.LocalDate startDate, java.time.LocalDate endDate);
 
     List<Income> findByCategoryNameIgnoreCaseOrderByDateAscIdAsc(String categoryName);
+
+    List<Income> findByStatusAndDateBetweenOrderByDateAscIdAsc(IncomeStatus status, java.time.LocalDate startDate, java.time.LocalDate endDate);
+
+    long countByStatusNotAndDateBetween(IncomeStatus status, java.time.LocalDate startDate, java.time.LocalDate endDate);
 }
