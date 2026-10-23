@@ -33,4 +33,6 @@ public interface IncomeRepository extends JpaRepository<Income, Long>, JpaSpecif
     List<Object[]> findDailySumByDateBetween(@org.springframework.data.repository.query.Param("status") IncomeStatus status, @org.springframework.data.repository.query.Param("startDate") java.time.LocalDate startDate, @org.springframework.data.repository.query.Param("endDate") java.time.LocalDate endDate);
 
     List<Income> findByCategoryNameAndStatusAndDateBetweenOrderByDateDesc(String categoryName, IncomeStatus status, java.time.LocalDate startDate, java.time.LocalDate endDate);
+
+    List<Income> findByCategoryNameIgnoreCaseOrderByDateAscIdAsc(String categoryName);
 }

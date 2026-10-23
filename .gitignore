@@ -59,3 +59,8 @@ vouchers/
 logs/
 tmp/
 data/
+
+# Feature Inputs
+feature-inputs/
+.agents/
+.specify/

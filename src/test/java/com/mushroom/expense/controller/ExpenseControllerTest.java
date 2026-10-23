@@ -41,6 +41,12 @@ class ExpenseControllerTest {
     @MockBean
     private com.mushroom.expense.service.IncomeService incomeService;
 
+    @MockBean
+    private com.mushroom.expense.service.CapitalService capitalService;
+
+    @MockBean
+    private com.mushroom.expense.service.LoanService loanService;
+
     private User managerUser;
     private User accountantUser;
     private Expense expense;
@@ -70,7 +76,7 @@ class ExpenseControllerTest {
     void dashboard_Manager_Success() throws Exception {
         when(userService.findByUsername("manager")).thenReturn(Optional.of(managerUser));
 
-        mockMvc.perform(get("/dashboard"))
+        mockMvc.perform(get("/approvals"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/my-expenses"));
     }
@@ -84,7 +90,7 @@ class ExpenseControllerTest {
 
         mockMvc.perform(get("/my-expenses"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("manager/dashboard"))
+                .andExpect(view().name("manager/approvals"))
                 .andExpect(model().attributeExists("myDrafts"));
     }
 
@@ -96,11 +102,15 @@ class ExpenseControllerTest {
                 .thenReturn(org.springframework.data.domain.Page.empty()); // Mock page return
         when(incomeService.getIncomes(any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(org.springframework.data.domain.Page.empty());
+        when(capitalService.getCapitalTransactions(any(), any(), any(), any(), any(), any(), any()))
+                .thenReturn(org.springframework.data.domain.Page.empty());
+        when(loanService.getLoanTransactions(any(), any(), any(), any(), any(), any(), any(), any()))
+                .thenReturn(org.springframework.data.domain.Page.empty());
 
-        mockMvc.perform(get("/dashboard"))
+        mockMvc.perform(get("/approvals"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("accountant/dashboard"))
-                .andExpect(model().attributeExists("submittedExpenses"));
+                .andExpect(view().name("accountant/approvals"))
+                .andExpect(model().attributeExists("submittedExpenses", "submittedCapitals", "submittedLoans"));
     }
 
     @Test
@@ -123,7 +133,7 @@ class ExpenseControllerTest {
         mockMvc.perform(post("/expense/approve/1")
                 .with(csrf()))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrlPattern("/dashboard?*"));
+                .andExpect(redirectedUrlPattern("/approvals?*"));
     }
 
     @Test
@@ -145,7 +155,7 @@ class ExpenseControllerTest {
                 .param("message", "Rejection Reason")
                 .with(csrf()))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrlPattern("/dashboard?*"));
+                .andExpect(redirectedUrlPattern("/approvals?*"));
     }
 
     @Test
@@ -157,7 +167,7 @@ class ExpenseControllerTest {
                 .param("message", "Query Message")
                 .with(csrf()))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrlPattern("/dashboard?*"));
+                .andExpect(redirectedUrlPattern("/approvals?*"));
     }
 
     @Test

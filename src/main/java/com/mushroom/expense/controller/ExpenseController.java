@@ -26,12 +26,24 @@ public class ExpenseController {
     private final CategoryService categoryService;
     private final UserService userService;
     private final com.mushroom.expense.service.IncomeService incomeService;
+    private final com.mushroom.expense.service.CapitalService capitalService;
+    private final com.mushroom.expense.service.LoanService loanService;
 
-    public ExpenseController(ExpenseService expenseService, CategoryService categoryService, UserService userService, com.mushroom.expense.service.IncomeService incomeService) {
+    @org.springframework.beans.factory.annotation.Autowired
+    public ExpenseController(ExpenseService expenseService, CategoryService categoryService, UserService userService,
+            com.mushroom.expense.service.IncomeService incomeService,
+            com.mushroom.expense.service.CapitalService capitalService,
+            com.mushroom.expense.service.LoanService loanService) {
         this.expenseService = expenseService;
         this.categoryService = categoryService;
         this.userService = userService;
         this.incomeService = incomeService;
+        this.capitalService = capitalService;
+        this.loanService = loanService;
+    }
+
+    public ExpenseController(ExpenseService expenseService, CategoryService categoryService, UserService userService, com.mushroom.expense.service.IncomeService incomeService) {
+        this(expenseService, categoryService, userService, incomeService, null, null);
     }
 
     @GetMapping("/approvals")
@@ -66,11 +78,9 @@ public class ExpenseController {
         model.addAttribute("sortDir", sortDir);
         model.addAttribute("categories", categoryService.findCategoriesByType(com.mushroom.expense.entity.TransactionType.EXPENSE)); // For filter dropdown
 
-        if (role.equals("ROLE_ADMIN")) {
-            return "redirect:/admin/users";
-        } else if (role.equals("ROLE_MANAGER")) {
+        if (role.equals("ROLE_MANAGER")) {
             return "redirect:/my-expenses";
-        } else if (role.equals("ROLE_ACCOUNTANT")) {
+        } else if (role.equals("ROLE_ACCOUNTANT") || role.equals("ROLE_ADMIN")) {
             model.addAttribute("submittedExpenses",
                     expenseService.getExpenses(null, List.of(ExpenseStatus.SUBMITTED), search, startDate, endDate,
                             categoryId,
@@ -95,6 +105,16 @@ public class ExpenseController {
                     incomeService.getIncomes(null, List.of(IncomeStatus.REJECTED), search, startDate, endDate,
                             categoryId,
                             PageRequest.of(rejectedIncomePage, pageSize, sort)));
+            if (capitalService != null) {
+                model.addAttribute("submittedCapitals",
+                        capitalService.getCapitalTransactions(null, null, List.of(IncomeStatus.SUBMITTED),
+                                search, startDate, endDate, PageRequest.of(0, pageSize, sort)));
+            }
+            if (loanService != null) {
+                model.addAttribute("submittedLoans",
+                        loanService.getLoanTransactions(null, null, null, List.of(IncomeStatus.SUBMITTED),
+                                search, startDate, endDate, PageRequest.of(0, pageSize, sort)));
+            }
             return "accountant/approvals";
         } else if (role.equals("ROLE_SUPERVISOR")) {
             model.addAttribute("myDrafts",
@@ -125,6 +145,16 @@ public class ExpenseController {
                     incomeService.getIncomes(null, List.of(IncomeStatus.REJECTED), search, startDate, endDate,
                             categoryId,
                             PageRequest.of(rejectedIncomePage, pageSize, sort)));
+            if (capitalService != null) {
+                model.addAttribute("submittedCapitals",
+                        capitalService.getCapitalTransactions(null, null, List.of(IncomeStatus.SUBMITTED),
+                                search, startDate, endDate, PageRequest.of(0, pageSize, sort)));
+            }
+            if (loanService != null) {
+                model.addAttribute("submittedLoans",
+                        loanService.getLoanTransactions(null, null, null, List.of(IncomeStatus.SUBMITTED),
+                                search, startDate, endDate, PageRequest.of(0, pageSize, sort)));
+            }
             return "supervisor/approvals";
         }
 
@@ -231,6 +261,16 @@ public class ExpenseController {
                 incomeService.getIncomes(null, List.of(IncomeStatus.REJECTED), search, startDate, endDate,
                         categoryId,
                         PageRequest.of(rejectedIncomePage, pageSize, sort)));
+        if (capitalService != null) {
+            model.addAttribute("submittedCapitals",
+                    capitalService.getCapitalTransactions(null, null, List.of(IncomeStatus.SUBMITTED),
+                            search, startDate, endDate, PageRequest.of(0, pageSize, sort)));
+        }
+        if (loanService != null) {
+            model.addAttribute("submittedLoans",
+                    loanService.getLoanTransactions(null, null, null, List.of(IncomeStatus.SUBMITTED),
+                            search, startDate, endDate, PageRequest.of(0, pageSize, sort)));
+        }
         return "accountant/approvals";
     }
 
@@ -250,7 +290,7 @@ public class ExpenseController {
     @PostMapping("/expense")
     @PreAuthorize("hasAnyRole('MANAGER', 'ACCOUNTANT', 'SUPERVISOR', 'ADMIN')")
     public String saveExpense(@ModelAttribute Expense expense,
-            @RequestParam("receiptFiles") List<MultipartFile> files,
+            @RequestParam(value = "receiptFiles", required = false) List<MultipartFile> files,
             @RequestParam(value = "deleteAttachmentIds", required = false) List<Long> deleteAttachmentIds,
             @RequestParam(value = "deletePrimaryImage", required = false, defaultValue = "false") boolean deletePrimaryImage,
             @AuthenticationPrincipal UserDetails userDetails) throws IOException {

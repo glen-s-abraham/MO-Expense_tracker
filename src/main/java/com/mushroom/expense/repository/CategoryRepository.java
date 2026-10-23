@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface CategoryRepository extends JpaRepository<Category, Long> {
     List<Category> findByType(TransactionType type);
+    java.util.Optional<Category> findByNameIgnoreCase(String name);
 }

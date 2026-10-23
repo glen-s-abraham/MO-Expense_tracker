@@ -19,13 +19,25 @@
                             enctype="multipart/form-data">
                             <input type="hidden" th:field="*{id}">
 
-                            <div class="mb-3">
-                                <label for="category" class="form-label fw-bold">Category</label>
-                                <select class="form-select" id="category" th:field="*{category}" required>
-                                    <option value="">Select Category</option>
-                                    <option th:each="cat : ${categories}" th:value="${cat.id}"
-                                        th:text="${cat.name}"></option>
-                                </select>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="category" class="form-label fw-bold">Category</label>
+                                    <select class="form-select" id="category" th:field="*{category}"
+                                        hx-get="/api/subcategories" hx-target="#subCategory" hx-trigger="change"
+                                        name="category" required>
+                                        <option value="">Select Category</option>
+                                        <option th:each="cat : ${categories}" th:value="${cat.id}"
+                                            th:text="${cat.name}"></option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="subCategory" class="form-label fw-bold">SubCategory (Optional)</label>
+                                    <select class="form-select" id="subCategory" th:field="*{subCategory}">
+                                        <option value="">Select SubCategory</option>
+                                        <option th:if="${subCategories != null}" th:each="sub : ${subCategories}"
+                                            th:value="${sub.id}" th:text="${sub.name}"></option>
+                                    </select>
+                                </div>
                             </div>
 
                             <div class="mb-3">

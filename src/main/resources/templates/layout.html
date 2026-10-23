@@ -7,6 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="/css/styles.css" rel="stylesheet">
+    <script src="/js/pagination.js" defer></script>
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
@@ -24,31 +25,35 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto ms-4">
                 <li class="nav-item" sec:authorize="hasRole('ACCOUNTANT') or hasRole('SUPERVISOR') or hasRole('ADMIN')">
-                    <a class="nav-link" href="/dashboard">Dashboard</a>
-                </li>
-                <li class="nav-item" sec:authorize="hasRole('MANAGER') or hasRole('SUPERVISOR') or hasRole('ACCOUNTANT') or hasRole('ADMIN')">
-                    <a class="nav-link" href="/approvals">Approvals</a>
+                    <a class="nav-link" href="/dashboard"><i class="fas fa-chart-pie me-1"></i>Dashboard</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/my-expenses">My Expenses</a>
+                    <a class="nav-link" href="/my-expenses"><i class="fas fa-receipt me-1"></i>Expenses</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/my-incomes">My Incomes</a>
+                    <a class="nav-link" href="/my-incomes"><i class="fas fa-coins me-1"></i>Income</a>
                 </li>
-                <li class="nav-item" sec:authorize="hasRole('ADMIN')">
-                    <a class="nav-link" href="/admin/approvals">All Approvals (Exp)</a>
+                <li class="nav-item">
+                    <a class="nav-link" href="/capital"><i class="fas fa-landmark me-1"></i>Capital</a>
                 </li>
-                <li class="nav-item" sec:authorize="hasRole('ADMIN')">
-                    <a class="nav-link" href="/admin/income-approvals">All Approvals (Inc)</a>
+                <li class="nav-item">
+                    <a class="nav-link" href="/loans"><i class="fas fa-hand-holding-usd me-1"></i>Loans</a>
                 </li>
-                <li class="nav-item" sec:authorize="hasRole('ADMIN')">
-                    <a class="nav-link" href="/admin/users">Users</a>
+                <li class="nav-item" sec:authorize="hasRole('SUPERVISOR') or hasRole('ACCOUNTANT') or hasRole('ADMIN')">
+                    <a class="nav-link" href="/approvals"><i class="fas fa-check-double me-1"></i>Approvals</a>
                 </li>
-                <li class="nav-item" sec:authorize="hasRole('ADMIN')">
-                    <a class="nav-link" href="/admin/categories">Categories</a>
-                </li>
-                 <li class="nav-item" sec:authorize="hasRole('ADMIN')">
-                    <a class="nav-link" href="/admin/subcategories">SubCategories</a>
+                <li class="nav-item dropdown" sec:authorize="hasRole('ADMIN')">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-cog me-1"></i>Admin
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="/admin/approvals">All Approvals (Exp &amp; Inc)</a></li>
+                        <li><a class="dropdown-item" href="/admin/income-approvals">Income Approvals</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="/admin/users">Users</a></li>
+                        <li><a class="dropdown-item" href="/admin/categories">Categories</a></li>
+                        <li><a class="dropdown-item" href="/admin/subcategories">SubCategories</a></li>
+                    </ul>
                 </li>
             </ul>
             <div class="d-flex align-items-center gap-3">

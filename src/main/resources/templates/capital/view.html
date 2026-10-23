@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head('Capital Transaction Details')}"></head>
+<body>
+<nav th:replace="~{layout :: navbar}"></nav>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0">Capital Details <span class="text-muted" th:text="'#' + ${capitalTransaction.id}"></span></h4>
+                        <small class="text-muted">Submitted by <span class="fw-bold" th:text="${capitalTransaction.user.username}">User</span></small>
+                    </div>
+                    <span class="badge bg-info text-dark" th:text="${capitalTransaction.status}">STATUS</span>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Transaction Type:</strong>
+                            <span class="badge bg-primary" th:if="${capitalTransaction.type.name() == 'INTRODUCED'}">Capital Introduced</span>
+                            <span class="badge bg-warning text-dark" th:if="${capitalTransaction.type.name() == 'DRAWINGS'}">Drawings</span>
+                        </div>
+                        <div class="col-md-6" th:if="${capitalTransaction.ownerName != null}">
+                            <strong>Owner / Partner:</strong> <span th:text="${capitalTransaction.ownerName}"></span>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Amount:</strong> <span class="fw-bold" th:text="'₹' + ${#numbers.formatDecimal(capitalTransaction.amount, 1, 'COMMA', 2, 'POINT')}"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Date:</strong> <span th:text="${capitalTransaction.date}"></span>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Payment Mode:</strong> <span th:text="${capitalTransaction.paymentMode}"></span>
+                        </div>
+                        <div class="col-md-6" th:if="${capitalTransaction.batchId != null && !capitalTransaction.batchId.empty}">
+                            <strong>Reference / Batch ID:</strong> <span th:text="${capitalTransaction.batchId}"></span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Description:</strong>
+                        <p th:text="${capitalTransaction.description}"></p>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Attachments:</strong>
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                            <div th:each="attachment : ${capitalTransaction.attachments}">
+                                <a th:href="@{'/uploads/' + ${attachment.fileName}}" target="_blank" th:text="${attachment.fileName}" class="btn btn-sm btn-outline-primary"></a>
+                            </div>
+                        </div>
+                        <div th:if="${capitalTransaction.attachments.empty}" class="text-muted">No attachments.</div>
+                    </div>
+                </div>
+                <div class="card-footer bg-white d-flex gap-2">
+                    <a th:if="${isOwner && (capitalTransaction.status.name() == 'DRAFT' || capitalTransaction.status.name() == 'QUERIES_RAISED' || capitalTransaction.status.name() == 'REJECTED')}"
+                       th:href="@{/capital/edit/{id}(id=${capitalTransaction.id})}" class="btn btn-primary">Edit & Fix</a>
+
+                    <form th:if="${(userRole == 'ROLE_ACCOUNTANT' || userRole == 'ROLE_SUPERVISOR' || userRole == 'ROLE_ADMIN') && capitalTransaction.status.name() == 'SUBMITTED'}"
+                          th:action="@{/capital/approve/{id}(id=${capitalTransaction.id})}" method="post" class="d-inline">
+                        <input type="hidden" name="redirectTo" th:value="'/capital?tab=' + ${capitalTransaction.type.name()}">
+                        <button type="submit" class="btn btn-success"><i class="fas fa-check me-2"></i>Approve</button>
+                    </form>
+
+                    <a th:href="@{/capital(tab=${capitalTransaction.type.name()})}" class="btn btn-outline-secondary">Back</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Comments / Queries</h5>
+                </div>
+                <div class="card-body">
+                    <div th:each="comment : ${comments}" class="mb-3 border-bottom pb-2">
+                        <div class="d-flex justify-content-between">
+                            <strong th:text="${comment.user.username}">User</strong>
+                            <small class="text-muted" th:text="${#temporals.format(comment.timestamp, 'dd-MM-yyyy HH:mm')}">Date</small>
+                        </div>
+                        <p class="mb-0" th:text="${comment.message}">Message</p>
+                    </div>
+                    <div th:if="${#lists.isEmpty(comments)}" class="text-muted">No comments yet.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:replace="~{layout :: scripts}"></script>
+</body>
+</html>

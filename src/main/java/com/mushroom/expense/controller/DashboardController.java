@@ -2,12 +2,14 @@ package com.mushroom.expense.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mushroom.expense.entity.ExpenseStatus;
-import com.mushroom.expense.entity.IncomeStatus;
-import com.mushroom.expense.repository.ExpenseRepository;
-import com.mushroom.expense.repository.IncomeRepository;
+import com.mushroom.expense.entity.*;
+import com.mushroom.expense.repository.*;
+import com.mushroom.expense.service.CapitalService;
+import com.mushroom.expense.service.LoanService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,12 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.YearMonth;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Controller
 public class DashboardController {
@@ -33,40 +30,67 @@ public class DashboardController {
     private IncomeRepository incomeRepository;
 
     @Autowired
+    private CapitalTransactionRepository capitalTransactionRepository;
+
+    @Autowired
+    private LoanTransactionRepository loanTransactionRepository;
+
+    @Autowired
+    private CapitalService capitalService;
+
+    @Autowired
+    private LoanService loanService;
+
+    @Autowired
     private ObjectMapper objectMapper;
 
     @GetMapping("/dashboard")
-    @PreAuthorize("hasAnyRole('ACCOUNTANT', 'SUPERVISOR', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('ACCOUNTANT', 'SUPERVISOR', 'ADMIN', 'MANAGER')")
     public String graphicalDashboard(
             @RequestParam(value = "year", required = false) Integer yearParam,
             @RequestParam(value = "month", required = false) Integer monthParam,
             @RequestParam(value = "fy", required = false) String fyParam,
             @RequestParam(value = "activeTab", defaultValue = "monthly") String activeTab,
+            @AuthenticationPrincipal UserDetails userDetails,
             Model model) throws JsonProcessingException {
-        
+
+        if (userDetails != null && userDetails.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_MANAGER"))) {
+            return "redirect:/my-expenses";
+        }
+
         LocalDate now = LocalDate.now();
         int currentYear = now.getYear();
-        
-        // Month/Year params for Monthly Tab
+
         int year = (yearParam != null) ? yearParam : currentYear;
         int month = (monthParam != null) ? monthParam : now.getMonthValue();
-        
-        // FY params for Yearly Tab
-        String defaultFy = now.getMonthValue() >= 4 ? currentYear + "-" + (currentYear + 1) : (currentYear - 1) + "-" + currentYear;
+
+        String defaultFy = now.getMonthValue() >= 4
+                ? currentYear + "-" + (currentYear + 1)
+                : (currentYear - 1) + "-" + currentYear;
         String fy = (fyParam != null && !fyParam.isEmpty()) ? fyParam : defaultFy;
-        
+
         model.addAttribute("activeTab", activeTab);
 
         // -------------------------------------------------------------
-        // SECTION 1: GLOBAL LIFETIME TOTALS (from commencement)
+        // SECTION 1: GLOBAL LIFETIME TOTALS (Operational P&L + Financing Pools)
         // -------------------------------------------------------------
         List<Object[]> globalExpensesByCategory = expenseRepository.findSumByCategory(ExpenseStatus.APPROVED);
         List<Object[]> globalIncomesByCategory = incomeRepository.findSumByCategory(IncomeStatus.APPROVED);
 
         double globalTotalExpense = globalExpensesByCategory.stream().mapToDouble(obj -> (Double) obj[1]).sum();
         double globalTotalIncome = globalIncomesByCategory.stream().mapToDouble(obj -> (Double) obj[1]).sum();
+        double globalNetBalance = globalTotalIncome - globalTotalExpense;
 
-        // Expose all categories for the Lifetime section
+        double globalCapitalIntroduced = capitalService.getTotalApprovedIntroduced();
+        double globalCapitalDrawings = capitalService.getTotalApprovedDrawings();
+        double globalNetCapital = capitalService.getNetCapitalPool();
+
+        double globalLoansBorrowed = loanService.getTotalApprovedBorrowed();
+        double globalLoansRepaid = loanService.getTotalApprovedRepaid();
+        double globalOutstandingLoans = loanService.getOutstandingLoanPool();
+
+        double globalNetCashPosition = globalNetBalance + globalNetCapital + globalOutstandingLoans;
+
         globalExpensesByCategory.sort((a, b) -> Double.compare((Double) b[1], (Double) a[1]));
         model.addAttribute("globalExpensesByCategory", globalExpensesByCategory);
 
@@ -75,8 +99,22 @@ public class DashboardController {
 
         model.addAttribute("globalTotalExpense", globalTotalExpense);
         model.addAttribute("globalTotalIncome", globalTotalIncome);
-        model.addAttribute("globalNetBalance", globalTotalIncome - globalTotalExpense);
+        model.addAttribute("globalNetBalance", globalNetBalance);
 
+        model.addAttribute("globalCapitalIntroduced", globalCapitalIntroduced);
+        model.addAttribute("globalCapitalDrawings", globalCapitalDrawings);
+        model.addAttribute("globalNetCapital", globalNetCapital);
+
+        model.addAttribute("globalLoansBorrowed", globalLoansBorrowed);
+        model.addAttribute("globalLoansRepaid", globalLoansRepaid);
+        model.addAttribute("globalOutstandingLoans", globalOutstandingLoans);
+
+        model.addAttribute("globalNetCashPosition", globalNetCashPosition);
+
+        // Pool drilldown data for expandable modals
+        model.addAttribute("loanSummaries", loanService.getAllLoanSummaries());
+        model.addAttribute("approvedCapitalTransactions",
+                capitalTransactionRepository.findByStatusOrderByDateDesc(IncomeStatus.APPROVED));
 
         // -------------------------------------------------------------
         // SECTION 2: MONTHLY SNAPSHOT (Tab 1)
@@ -85,25 +123,53 @@ public class DashboardController {
         LocalDate startDate = selectedMonth.atDay(1);
         LocalDate endDate = selectedMonth.atEndOfMonth();
 
-        List<Object[]> monthlyExpensesByCategory = expenseRepository.findSumByCategoryAndDateBetween(ExpenseStatus.APPROVED, startDate, endDate);
-        List<Object[]> monthlyIncomesByCategory = incomeRepository.findSumByCategoryAndDateBetween(IncomeStatus.APPROVED, startDate, endDate);
+        List<Object[]> monthlyExpensesByCategory = expenseRepository.findSumByCategoryAndDateBetween(
+                ExpenseStatus.APPROVED, startDate, endDate);
+        List<Object[]> monthlyIncomesByCategory = incomeRepository.findSumByCategoryAndDateBetween(
+                IncomeStatus.APPROVED, startDate, endDate);
 
         double monthlyTotalExpense = monthlyExpensesByCategory.stream().mapToDouble(obj -> (Double) obj[1]).sum();
         double monthlyTotalIncome = monthlyIncomesByCategory.stream().mapToDouble(obj -> (Double) obj[1]).sum();
+        double monthlyNetBalance = monthlyTotalIncome - monthlyTotalExpense;
+
+        double monthlyCapitalIntroduced = Optional.ofNullable(
+                capitalTransactionRepository.sumAmountByTypeAndStatusAndDateBetween(
+                        CapitalTransactionType.INTRODUCED, IncomeStatus.APPROVED, startDate, endDate)).orElse(0.0);
+        double monthlyCapitalDrawings = Optional.ofNullable(
+                capitalTransactionRepository.sumAmountByTypeAndStatusAndDateBetween(
+                        CapitalTransactionType.DRAWINGS, IncomeStatus.APPROVED, startDate, endDate)).orElse(0.0);
+        double monthlyNetCapitalFlow = monthlyCapitalIntroduced - monthlyCapitalDrawings;
+
+        double monthlyLoansBorrowed = Optional.ofNullable(
+                loanTransactionRepository.sumAmountByTypeAndStatusAndDateBetween(
+                        LoanTransactionType.BORROWED, IncomeStatus.APPROVED, startDate, endDate)).orElse(0.0);
+        double monthlyLoansRepaid = Optional.ofNullable(
+                loanTransactionRepository.sumAmountByTypeAndStatusAndDateBetween(
+                        LoanTransactionType.REPAYMENT, IncomeStatus.APPROVED, startDate, endDate)).orElse(0.0);
+        double monthlyNetLoanFlow = monthlyLoansBorrowed - monthlyLoansRepaid;
+
+        double monthlyNetCashFlow = monthlyNetBalance + monthlyNetCapitalFlow + monthlyNetLoanFlow;
 
         model.addAttribute("monthlyTotalExpense", monthlyTotalExpense);
         model.addAttribute("monthlyTotalIncome", monthlyTotalIncome);
-        model.addAttribute("monthlyNetBalance", monthlyTotalIncome - monthlyTotalExpense);
-        
+        model.addAttribute("monthlyNetBalance", monthlyNetBalance);
+        model.addAttribute("monthlyCapitalIntroduced", monthlyCapitalIntroduced);
+        model.addAttribute("monthlyCapitalDrawings", monthlyCapitalDrawings);
+        model.addAttribute("monthlyNetCapitalFlow", monthlyNetCapitalFlow);
+        model.addAttribute("monthlyLoansBorrowed", monthlyLoansBorrowed);
+        model.addAttribute("monthlyLoansRepaid", monthlyLoansRepaid);
+        model.addAttribute("monthlyNetLoanFlow", monthlyNetLoanFlow);
+        model.addAttribute("monthlyNetCashFlow", monthlyNetCashFlow);
+
         monthlyExpensesByCategory.sort((a, b) -> Double.compare((Double) b[1], (Double) a[1]));
         model.addAttribute("monthlyExpensesByCategory", monthlyExpensesByCategory);
-        
+
         monthlyIncomesByCategory.sort((a, b) -> Double.compare((Double) b[1], (Double) a[1]));
         model.addAttribute("monthlyIncomesByCategory", monthlyIncomesByCategory);
-        
+
         model.addAttribute("monthlyStartDate", startDate.toString());
         model.addAttribute("monthlyEndDate", endDate.toString());
-        
+
         model.addAttribute("selectedYear", year);
         model.addAttribute("selectedMonth", month);
         model.addAttribute("selectedMonthName", selectedMonth.getMonth().name());
@@ -113,8 +179,8 @@ public class DashboardController {
             availableYears.add(i);
         }
         model.addAttribute("availableYears", availableYears);
-        
-        Map<Integer, String> availableMonths = new HashMap<>();
+
+        Map<Integer, String> availableMonths = new LinkedHashMap<>();
         for (Month m : Month.values()) {
             availableMonths.put(m.getValue(), m.name());
         }
@@ -170,30 +236,57 @@ public class DashboardController {
         model.addAttribute("dailyExpenseAmountsJson", objectMapper.writeValueAsString(dailyExpenseAmounts));
         model.addAttribute("dailyIncomeAmountsJson", objectMapper.writeValueAsString(dailyIncomeAmounts));
 
-
         // -------------------------------------------------------------
-        // SECTION 3: YEARLY SNAPSHOT (Tab 2)
+        // SECTION 3: YEARLY SNAPSHOT (Tab 2 - Financial Year Apr to Mar)
         // -------------------------------------------------------------
         int fyStartYear = Integer.parseInt(fy.split("-")[0]);
         LocalDate fyStartDate = LocalDate.of(fyStartYear, 4, 1);
         LocalDate fyEndDate = LocalDate.of(fyStartYear + 1, 3, 31);
-        
+
         List<String> availableFys = new ArrayList<>();
         for (int i = 2023; i <= currentYear + 1; i++) {
             availableFys.add(i + "-" + (i + 1));
         }
         model.addAttribute("availableFys", availableFys);
         model.addAttribute("selectedFy", fy);
-        
-        List<Object[]> fyExpensesByCategory = expenseRepository.findSumByCategoryAndDateBetween(ExpenseStatus.APPROVED, fyStartDate, fyEndDate);
-        List<Object[]> fyIncomesByCategory = incomeRepository.findSumByCategoryAndDateBetween(IncomeStatus.APPROVED, fyStartDate, fyEndDate);
+
+        List<Object[]> fyExpensesByCategory = expenseRepository.findSumByCategoryAndDateBetween(
+                ExpenseStatus.APPROVED, fyStartDate, fyEndDate);
+        List<Object[]> fyIncomesByCategory = incomeRepository.findSumByCategoryAndDateBetween(
+                IncomeStatus.APPROVED, fyStartDate, fyEndDate);
 
         double fyTotalExpense = fyExpensesByCategory.stream().mapToDouble(obj -> (Double) obj[1]).sum();
         double fyTotalIncome = fyIncomesByCategory.stream().mapToDouble(obj -> (Double) obj[1]).sum();
+        double fyNetBalance = fyTotalIncome - fyTotalExpense;
+
+        double fyCapitalIntroduced = Optional.ofNullable(
+                capitalTransactionRepository.sumAmountByTypeAndStatusAndDateBetween(
+                        CapitalTransactionType.INTRODUCED, IncomeStatus.APPROVED, fyStartDate, fyEndDate)).orElse(0.0);
+        double fyCapitalDrawings = Optional.ofNullable(
+                capitalTransactionRepository.sumAmountByTypeAndStatusAndDateBetween(
+                        CapitalTransactionType.DRAWINGS, IncomeStatus.APPROVED, fyStartDate, fyEndDate)).orElse(0.0);
+        double fyNetCapitalFlow = fyCapitalIntroduced - fyCapitalDrawings;
+
+        double fyLoansBorrowed = Optional.ofNullable(
+                loanTransactionRepository.sumAmountByTypeAndStatusAndDateBetween(
+                        LoanTransactionType.BORROWED, IncomeStatus.APPROVED, fyStartDate, fyEndDate)).orElse(0.0);
+        double fyLoansRepaid = Optional.ofNullable(
+                loanTransactionRepository.sumAmountByTypeAndStatusAndDateBetween(
+                        LoanTransactionType.REPAYMENT, IncomeStatus.APPROVED, fyStartDate, fyEndDate)).orElse(0.0);
+        double fyNetLoanFlow = fyLoansBorrowed - fyLoansRepaid;
+
+        double fyNetCashFlow = fyNetBalance + fyNetCapitalFlow + fyNetLoanFlow;
 
         model.addAttribute("fyTotalExpense", fyTotalExpense);
         model.addAttribute("fyTotalIncome", fyTotalIncome);
-        model.addAttribute("fyNetBalance", fyTotalIncome - fyTotalExpense);
+        model.addAttribute("fyNetBalance", fyNetBalance);
+        model.addAttribute("fyCapitalIntroduced", fyCapitalIntroduced);
+        model.addAttribute("fyCapitalDrawings", fyCapitalDrawings);
+        model.addAttribute("fyNetCapitalFlow", fyNetCapitalFlow);
+        model.addAttribute("fyLoansBorrowed", fyLoansBorrowed);
+        model.addAttribute("fyLoansRepaid", fyLoansRepaid);
+        model.addAttribute("fyNetLoanFlow", fyNetLoanFlow);
+        model.addAttribute("fyNetCashFlow", fyNetCashFlow);
 
         fyExpensesByCategory.sort((a, b) -> Double.compare((Double) b[1], (Double) a[1]));
         model.addAttribute("fyExpensesByCategory", fyExpensesByCategory);
@@ -223,11 +316,11 @@ public class DashboardController {
         model.addAttribute("fyExpenseAmountsJson", objectMapper.writeValueAsString(fyExpenseAmounts));
         model.addAttribute("fyIncomeCategoriesJson", objectMapper.writeValueAsString(fyIncomeCategories));
         model.addAttribute("fyIncomeAmountsJson", objectMapper.writeValueAsString(fyIncomeAmounts));
-        
+
         // Line Chart Data (Yearly - Aggregated by Month)
         List<Object[]> fyDailyExpenses = expenseRepository.findDailySumByDateBetween(ExpenseStatus.APPROVED, fyStartDate, fyEndDate);
         List<Object[]> fyDailyIncomes = incomeRepository.findDailySumByDateBetween(IncomeStatus.APPROVED, fyStartDate, fyEndDate);
-        
+
         List<String> fyMonths = Arrays.asList("Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar");
         List<Double> fyMonthlyExpenseAmounts = new ArrayList<>(Collections.nCopies(12, 0.0));
         List<Double> fyMonthlyIncomeAmounts = new ArrayList<>(Collections.nCopies(12, 0.0));

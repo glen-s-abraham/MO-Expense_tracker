@@ -107,7 +107,7 @@ class IncomeControllerTest {
         mockMvc.perform(post("/income/approve/1")
                 .with(csrf()))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrlPattern("/dashboard?*"));
+                .andExpect(redirectedUrlPattern("/approvals?*"));
     }
 
     @Test
@@ -129,7 +129,7 @@ class IncomeControllerTest {
                 .param("message", "Rejection Reason")
                 .with(csrf()))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrlPattern("/dashboard?*"));
+                .andExpect(redirectedUrlPattern("/approvals?*"));
     }
 
     @Test
@@ -141,7 +141,7 @@ class IncomeControllerTest {
                 .param("message", "Query Message")
                 .with(csrf()))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrlPattern("/dashboard?*"));
+                .andExpect(redirectedUrlPattern("/approvals?*"));
     }
 
     @Test

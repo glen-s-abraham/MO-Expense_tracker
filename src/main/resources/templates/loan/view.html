@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head('Loan Transaction Details')}"></head>
+<body>
+<nav th:replace="~{layout :: navbar}"></nav>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0">Loan Transaction Details <span class="text-muted" th:text="'#' + ${loanTransaction.id}"></span></h4>
+                        <small class="text-muted">Submitted by <span class="fw-bold" th:text="${loanTransaction.user.username}">User</span></small>
+                    </div>
+                    <span class="badge bg-info text-dark" th:text="${loanTransaction.status}">STATUS</span>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Loan Facility:</strong> <span class="fw-bold" th:text="${loanTransaction.loan.loanName}"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Lender:</strong> <span th:text="${loanTransaction.loan.lenderName}"></span>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Transaction Type:</strong>
+                            <span class="badge bg-primary" th:if="${loanTransaction.type.name() == 'BORROWED'}">Loan Inward</span>
+                            <span class="badge bg-success" th:if="${loanTransaction.type.name() == 'REPAYMENT'}">Loan Repayment</span>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Current Loan Outstanding:</strong>
+                            <span class="fw-bold text-danger" th:text="'₹' + ${#numbers.formatDecimal(loanOutstanding, 1, 'COMMA', 2, 'POINT')}"></span>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Amount:</strong> <span class="fw-bold" th:text="'₹' + ${#numbers.formatDecimal(loanTransaction.amount, 1, 'COMMA', 2, 'POINT')}"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Date:</strong> <span th:text="${loanTransaction.date}"></span>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Payment Mode:</strong> <span th:text="${loanTransaction.paymentMode}"></span>
+                        </div>
+                        <div class="col-md-6" th:if="${loanTransaction.batchId != null && !loanTransaction.batchId.empty}">
+                            <strong>Reference / UTR ID:</strong> <span th:text="${loanTransaction.batchId}"></span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Description:</strong>
+                        <p th:text="${loanTransaction.description}"></p>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Attachments:</strong>
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                            <div th:each="attachment : ${loanTransaction.attachments}">
+                                <a th:href="@{'/uploads/' + ${attachment.fileName}}" target="_blank" th:text="${attachment.fileName}" class="btn btn-sm btn-outline-primary"></a>
+                            </div>
+                        </div>
+                        <div th:if="${loanTransaction.attachments.empty}" class="text-muted">No attachments.</div>
+                    </div>
+                </div>
+                <div class="card-footer bg-white d-flex gap-2">
+                    <a th:if="${isOwner && (loanTransaction.status.name() == 'DRAFT' || loanTransaction.status.name() == 'QUERIES_RAISED' || loanTransaction.status.name() == 'REJECTED')}"
+                       th:href="@{/loans/edit/{id}(id=${loanTransaction.id})}" class="btn btn-primary">Edit & Fix</a>
+
+                    <form th:if="${(userRole == 'ROLE_ACCOUNTANT' || userRole == 'ROLE_SUPERVISOR' || userRole == 'ROLE_ADMIN') && loanTransaction.status.name() == 'SUBMITTED'}"
+                          th:action="@{/loans/approve/{id}(id=${loanTransaction.id})}" method="post" class="d-inline">
+                        <input type="hidden" name="redirectTo" th:value="'/loans?tab=' + ${loanTransaction.type.name()}">
+                        <button type="submit" class="btn btn-success"><i class="fas fa-check me-2"></i>Approve</button>
+                    </form>
+
+                    <a th:href="@{/loans(tab=${loanTransaction.type.name()})}" class="btn btn-outline-secondary">Back</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Comments / Queries</h5>
+                </div>
+                <div class="card-body">
+                    <div th:each="comment : ${comments}" class="mb-3 border-bottom pb-2">
+                        <div class="d-flex justify-content-between">
+                            <strong th:text="${comment.user.username}">User</strong>
+                            <small class="text-muted" th:text="${#temporals.format(comment.timestamp, 'dd-MM-yyyy HH:mm')}">Date</small>
+                        </div>
+                        <p class="mb-0" th:text="${comment.message}">Message</p>
+                    </div>
+                    <div th:if="${#lists.isEmpty(comments)}" class="text-muted">No comments yet.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:replace="~{layout :: scripts}"></script>
+</body>
+</html>

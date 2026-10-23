@@ -136,7 +136,7 @@ public class IncomeController {
     @PostMapping("/income")
     @PreAuthorize("hasAnyRole('MANAGER', 'ACCOUNTANT', 'SUPERVISOR', 'ADMIN')")
     public String saveIncome(@ModelAttribute Income income,
-            @RequestParam("receiptFiles") List<MultipartFile> files,
+            @RequestParam(value = "receiptFiles", required = false) List<MultipartFile> files,
             @RequestParam(value = "deleteAttachmentIds", required = false) List<Long> deleteAttachmentIds,
             @RequestParam(value = "deletePrimaryImage", required = false, defaultValue = "false") boolean deletePrimaryImage,
             @AuthenticationPrincipal UserDetails userDetails) throws IOException {
@@ -146,6 +146,7 @@ public class IncomeController {
         if (income.getId() != null) {
             incomeToSave = incomeService.findById(income.getId()).orElseThrow();
             incomeToSave.setCategory(income.getCategory());
+            incomeToSave.setSubCategory(income.getSubCategory());
             incomeToSave.setDescription(income.getDescription());
             incomeToSave.setAmount(income.getAmount());
             incomeToSave.setDate(income.getDate());
@@ -185,6 +186,9 @@ public class IncomeController {
         Income income = incomeService.findById(id).orElseThrow();
         model.addAttribute("income", income);
         model.addAttribute("categories", categoryService.findCategoriesByType(com.mushroom.expense.entity.TransactionType.INCOME));
+        if (income.getCategory() != null) {
+            model.addAttribute("subCategories", categoryService.findSubCategoriesByCategoryId(income.getCategory().getId()));
+        }
         model.addAttribute("paymentModes", PaymentMode.values());
         return "income_form";
     }
@@ -338,12 +342,13 @@ public class IncomeController {
         response.setHeader("Content-Disposition", "attachment; filename=\"incomes.csv\"");
 
         try (java.io.PrintWriter writer = response.getWriter()) {
-            writer.println("ID,Date,Category,Amount,Status,Description,User");
+            writer.println("ID,Date,Category,SubCategory,Amount,Status,Description,User");
             for (Income income : incomes) {
-                writer.printf("%d,%s,%s,%.2f,%s,\"%s\",%s%n",
+                writer.printf("%d,%s,%s,%s,%.2f,%s,\"%s\",%s%n",
                         income.getId(),
                         income.getDate(),
                         income.getCategory().getName(),
+                        income.getSubCategory() != null ? income.getSubCategory().getName() : "-",
                         income.getAmount(),
                         income.getStatus(),
                         income.getDescription() != null ? income.getDescription().replace("\"", "\"\"") : "",

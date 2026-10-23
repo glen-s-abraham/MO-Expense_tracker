@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head('Capital Transaction Form')}"></head>
+<body>
+<nav th:replace="~{layout :: navbar}"></nav>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+                    <h4 class="mb-0 text-gradient fw-bold"
+                        th:text="${capitalTransaction.id == null ? 'New Capital / Drawings Entry' : 'Edit Capital / Drawings Entry'}">
+                        Capital Form
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+                        <i class="fas fa-exclamation-circle me-2"></i><span th:text="${errorMessage}"></span>
+                    </div>
+                    <form th:action="@{/capital}" th:object="${capitalTransaction}" method="post" enctype="multipart/form-data">
+                        <input type="hidden" th:field="*{id}">
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="type" class="form-label fw-bold">Transaction Type</label>
+                                <select class="form-select" id="type" th:field="*{type}" required>
+                                    <option th:each="t : ${types}" th:value="${t}" th:text="${t.displayName}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="ownerName" class="form-label fw-bold">Owner / Partner Name (Optional)</label>
+                                <input type="text" class="form-control" id="ownerName" th:field="*{ownerName}"
+                                       placeholder="e.g. Owner / Partner Name">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label fw-bold">Description / Narration</label>
+                            <input type="text" class="form-control" id="description" th:field="*{description}" required>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="amount" class="form-label fw-bold">Amount</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₹</span>
+                                    <input type="number" step="0.01" min="0.01" class="form-control" id="amount"
+                                           th:field="*{amount}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="date" class="form-label fw-bold">Date</label>
+                                <input type="date" class="form-control" id="date" name="date"
+                                       th:value="${#temporals.format(capitalTransaction.date, 'yyyy-MM-dd')}" required>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="paymentMode" class="form-label fw-bold">Payment Mode</label>
+                                <select class="form-select" id="paymentMode" th:field="*{paymentMode}" required>
+                                    <option th:each="mode : ${paymentModes}" th:value="${mode}" th:text="${mode}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="batchId" class="form-label fw-bold">Reference / Batch ID (Optional)</label>
+                                <input type="text" class="form-control" id="batchId" th:field="*{batchId}">
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Supporting Documents / Receipts</label>
+                            <input type="file" name="receiptFiles" accept="image/*,.pdf,application/pdf" multiple class="form-control">
+
+                            <div class="mt-2" th:if="${capitalTransaction.attachments != null && !capitalTransaction.attachments.empty}">
+                                <div th:each="att : ${capitalTransaction.attachments}"
+                                     class="d-flex align-items-center justify-content-between border p-2 mb-2 rounded"
+                                     th:id="'attachment-' + ${att.id}">
+                                    <a th:href="@{'/uploads/' + ${att.fileName}}" target="_blank" th:text="${att.fileName}">file</a>
+                                    <button type="button" class="btn btn-sm btn-outline-danger"
+                                            th:hx-delete="@{'/capital/attachment/' + ${att.id}}"
+                                            hx-target="closest div[id^='attachment-']" hx-swap="outerHTML">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="/capital" class="btn btn-outline-secondary me-md-2">Cancel</a>
+                            <button type="submit" class="btn btn-primary shadow-sm">
+                                <i class="fas fa-save me-2"></i>Save Draft
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:replace="~{layout :: scripts}"></script>
+<script th:replace="~{layout :: htmx}"></script>
+</body>
+</html>

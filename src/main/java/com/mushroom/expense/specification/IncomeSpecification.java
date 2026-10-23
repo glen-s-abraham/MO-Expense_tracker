@@ -50,7 +50,10 @@ public class IncomeSpecification {
                 // To search category name, we need to access the joined path
                 Predicate categoryNameLike = criteriaBuilder
                         .like(criteriaBuilder.lower(root.get("category").get("name")), likePattern);
-                predicates.add(criteriaBuilder.or(descriptionLike, batchIdLike, categoryNameLike));
+                jakarta.persistence.criteria.Join<Object, Object> subCategoryJoin = root.join("subCategory", jakarta.persistence.criteria.JoinType.LEFT);
+                Predicate subCategoryNameLike = criteriaBuilder
+                        .like(criteriaBuilder.lower(subCategoryJoin.get("name")), likePattern);
+                predicates.add(criteriaBuilder.or(descriptionLike, batchIdLike, categoryNameLike, subCategoryNameLike));
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));

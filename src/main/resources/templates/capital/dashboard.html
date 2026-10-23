@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head('Capital & Drawings')}"></head>
+<body>
+<nav th:replace="~{layout :: navbar}"></nav>
+
+<div class="container">
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i><span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i><span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <!-- Summary KPI Banner -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #0d6efd !important;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="text-muted text-uppercase fw-bold">Capital Introduced (Approved)</small>
+                            <h4 class="fw-bold text-primary mb-0 mt-1" th:text="'₹' + ${#numbers.formatDecimal(totalIntroduced, 1, 'COMMA', 2, 'POINT')}">₹0.00</h4>
+                        </div>
+                        <i class="fas fa-hand-holding-usd fa-2x text-primary opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #fd7e14 !important;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="text-muted text-uppercase fw-bold">Owner Drawings (Approved)</small>
+                            <h4 class="fw-bold text-warning mb-0 mt-1" th:text="'₹' + ${#numbers.formatDecimal(totalDrawings, 1, 'COMMA', 2, 'POINT')}">₹0.00</h4>
+                        </div>
+                        <i class="fas fa-arrow-circle-up fa-2x text-warning opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #198754 !important;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="text-muted text-uppercase fw-bold">Net Capital Balance</small>
+                            <h4 class="fw-bold text-success mb-0 mt-1" th:text="'₹' + ${#numbers.formatDecimal(netCapitalPool, 1, 'COMMA', 2, 'POINT')}">₹0.00</h4>
+                            <small class="text-muted">Introduced − Drawings</small>
+                        </div>
+                        <i class="fas fa-landmark fa-2x text-success opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Primary Pillar Tabs: Capital Introduced vs Drawings -->
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <ul class="nav nav-pills">
+            <li class="nav-item">
+                <a class="nav-link fw-bold" th:classappend="${activeType.name() == 'INTRODUCED'} ? 'active'"
+                   th:href="@{/capital(tab='INTRODUCED', search=${search}, startDate=${startDate}, endDate=${endDate})}">
+                    <i class="fas fa-plus-circle me-2"></i>Capital Introduced
+                </a>
+            </li>
+            <li class="nav-item ms-2">
+                <a class="nav-link fw-bold" th:classappend="${activeType.name() == 'DRAWINGS'} ? 'active bg-warning text-dark'"
+                   th:href="@{/capital(tab='DRAWINGS', search=${search}, startDate=${startDate}, endDate=${endDate})}">
+                    <i class="fas fa-minus-circle me-2"></i>Drawings (Withdrawals)
+                </a>
+            </li>
+        </ul>
+        <div class="d-flex gap-2">
+            <a th:href="@{/capital/new(type='INTRODUCED')}" class="btn btn-primary shadow-sm">
+                <i class="fas fa-plus me-1"></i>Add Capital Introduced
+            </a>
+            <a th:href="@{/capital/new(type='DRAWINGS')}" class="btn btn-warning text-dark shadow-sm fw-bold">
+                <i class="fas fa-minus me-1"></i>Record Drawings
+            </a>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form th:action="@{/capital}" method="get" class="row g-3 align-items-end">
+                <input type="hidden" name="tab" th:value="${activeType}">
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold text-muted">Search</label>
+                    <input type="text" class="form-control" name="search" placeholder="Partner / Description..." th:value="${search}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold text-muted">From</label>
+                    <input type="date" class="form-control" name="startDate" th:value="${startDate}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold text-muted">To</label>
+                    <input type="date" class="form-control" name="endDate" th:value="${endDate}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold text-muted">Sort By</label>
+                    <div class="input-group">
+                        <select class="form-select" name="sortField">
+                            <option value="date" th:selected="${sortField == 'date'}">Date</option>
+                            <option value="amount" th:selected="${sortField == 'amount'}">Amount</option>
+                        </select>
+                        <select class="form-select" name="sortDir">
+                            <option value="DESC" th:selected="${sortDir == 'DESC'}">Desc</option>
+                            <option value="ASC" th:selected="${sortDir == 'ASC'}">Asc</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary flex-grow-1" title="Filter"><i class="fas fa-filter"></i></button>
+                        <button type="submit" class="btn btn-success flex-grow-1" formaction="/capital/export" title="Export CSV"><i class="fas fa-file-csv"></i></button>
+                        <a th:href="@{/capital(tab=${activeType})}" class="btn btn-secondary flex-grow-1" title="Reset"><i class="fas fa-sync"></i></a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Status Sub-Tabs -->
+    <ul class="nav nav-tabs mb-3" id="capitalStatusTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="approved-tab" data-bs-toggle="tab" data-bs-target="#approved" type="button" role="tab">
+                <i class="fas fa-check-circle me-2"></i>Approved <span class="badge bg-success ms-1" th:text="${approved.totalElements}">0</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="drafts-tab" data-bs-toggle="tab" data-bs-target="#drafts" type="button" role="tab">
+                <i class="fas fa-file-signature me-2"></i>Drafts & Returned <span class="badge bg-secondary ms-1" th:text="${myDrafts.totalElements}">0</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending" type="button" role="tab">
+                <i class="fas fa-clock me-2"></i>Pending Approval <span class="badge bg-info ms-1" th:text="${pending.totalElements}">0</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="rejected-tab" data-bs-toggle="tab" data-bs-target="#rejected" type="button" role="tab">
+                <i class="fas fa-times-circle me-2"></i>Rejected <span class="badge bg-danger ms-1" th:text="${rejected.totalElements}">0</span>
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <!-- Approved -->
+        <div class="tab-pane fade show active" id="approved" role="tabpanel">
+            <div class="card">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="bg-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Description / Partner</th>
+                                <th>Payment Mode</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="tx : ${approved}">
+                                <td th:text="${tx.date}">2026-02-01</td>
+                                <td>
+                                    <span class="badge bg-primary" th:if="${tx.type.name() == 'INTRODUCED'}">Capital Introduced</span>
+                                    <span class="badge bg-warning text-dark" th:if="${tx.type.name() == 'DRAWINGS'}">Drawings</span>
+                                </td>
+                                <td th:text="${tx.description}">Capital</td>
+                                <td th:text="${tx.paymentMode}">BANK_TRANSFER</td>
+                                <td class="fw-bold" th:text="'₹' + ${#numbers.formatDecimal(tx.amount, 1, 'COMMA', 2, 'POINT')}">₹0.00</td>
+                                <td><span class="badge bg-success">Approved</span></td>
+                                <td>
+                                    <a th:href="@{/capital/view/{id}(id=${tx.id})}" class="btn btn-sm btn-outline-secondary" title="View Details"><i class="fas fa-eye"></i></a>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(approved)}">
+                                <td colspan="7" class="text-center py-4 text-muted">No approved records found.</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Drafts & Returned -->
+        <div class="tab-pane fade" id="drafts" role="tabpanel">
+            <div class="card">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="bg-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="tx : ${myDrafts}">
+                                <td th:text="${tx.date}">2026-02-01</td>
+                                <td th:text="${tx.type.displayName}">Capital Introduced</td>
+                                <td th:text="${tx.description}">Description</td>
+                                <td class="fw-bold" th:text="'₹' + ${#numbers.formatDecimal(tx.amount, 1, 'COMMA', 2, 'POINT')}">₹0.00</td>
+                                <td>
+                                    <span class="badge bg-secondary" th:if="${tx.status.name() == 'DRAFT'}">Draft</span>
+                                    <span class="badge bg-warning text-dark" th:if="${tx.status.name() == 'QUERIES_RAISED'}">Query Raised</span>
+                                </td>
+                                <td>
+                                    <a th:href="@{/capital/edit/{id}(id=${tx.id})}" class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></a>
+                                    <form th:action="@{/capital/submit/{id}(id=${tx.id})}" method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-outline-success" title="Submit"><i class="fas fa-paper-plane"></i></button>
+                                    </form>
+                                    <a th:href="@{/capital/delete/{id}(id=${tx.id})}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this draft?')"><i class="fas fa-trash"></i></a>
+                                    <a th:href="@{/capital/view/{id}(id=${tx.id})}" class="btn btn-sm btn-outline-info"><i class="fas fa-eye"></i></a>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(myDrafts)}">
+                                <td colspan="6" class="text-center py-4 text-muted">No drafts found.</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending -->
+        <div class="tab-pane fade" id="pending" role="tabpanel">
+            <div class="card">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="bg-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="tx : ${pending}">
+                                <td th:text="${tx.date}">2026-02-01</td>
+                                <td th:text="${tx.type.displayName}">Capital Introduced</td>
+                                <td th:text="${tx.description}">Description</td>
+                                <td class="fw-bold" th:text="'₹' + ${#numbers.formatDecimal(tx.amount, 1, 'COMMA', 2, 'POINT')}">₹0.00</td>
+                                <td><span class="badge bg-info">Submitted</span></td>
+                                <td>
+                                    <a th:href="@{/capital/view/{id}(id=${tx.id})}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-eye"></i></a>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(pending)}">
+                                <td colspan="6" class="text-center py-4 text-muted">No pending records found.</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rejected -->
+        <div class="tab-pane fade" id="rejected" role="tabpanel">
+            <div class="card">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="bg-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="tx : ${rejected}">
+                                <td th:text="${tx.date}">2026-02-01</td>
+                                <td th:text="${tx.type.displayName}">Capital Introduced</td>
+                                <td th:text="${tx.description}">Description</td>
+                                <td class="fw-bold" th:text="'₹' + ${#numbers.formatDecimal(tx.amount, 1, 'COMMA', 2, 'POINT')}">₹0.00</td>
+                                <td><span class="badge bg-danger">Rejected</span></td>
+                                <td>
+                                    <a th:href="@{/capital/edit/{id}(id=${tx.id})}" class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></a>
+                                    <a th:href="@{/capital/view/{id}(id=${tx.id})}" class="btn btn-sm btn-outline-info"><i class="fas fa-comment"></i></a>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(rejected)}">
+                                <td colspan="6" class="text-center py-4 text-muted">No rejected records found.</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var activeTab = localStorage.getItem('activeTab_capital');
+        if (activeTab) {
+            var tabTrigger = document.querySelector('button[data-bs-target="' + activeTab + '"]');
+            if (tabTrigger && typeof bootstrap !== 'undefined') {
+                var tab = new bootstrap.Tab(tabTrigger);
+                tab.show();
+            }
+        }
+        var tabEls = document.querySelectorAll('button[data-bs-toggle="tab"]');
+        tabEls.forEach(function(tabEl) {
+            tabEl.addEventListener('shown.bs.tab', function (event) {
+                localStorage.setItem('activeTab_capital', event.target.getAttribute('data-bs-target'));
+            });
+        });
+    });
+</script>
+<script th:replace="~{layout :: scripts}"></script>
+</body>
+</html>

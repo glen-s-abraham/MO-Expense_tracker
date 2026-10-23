@@ -96,7 +96,7 @@
                             <tbody>
                             <tr th:each="income : ${myDrafts}">
                                 <td th:text="${income.date}">2023-10-27</td>
-                                <td th:text="${income.category.name}">Category</td>
+                                <td th:text="${income.category.name + (income.subCategory != null ? ' - ' + income.subCategory.name : '')}">Category</td>
                                 <td class="fw-bold" th:text="${income.amount}">100.00</td>
                                 <td>
                                     <span class="badge bg-secondary" th:if="${income.status.name() == 'DRAFT'}">Draft</span>
@@ -164,7 +164,7 @@
                             <tbody>
                             <tr th:each="income : ${pending}">
                                 <td th:text="${income.date}">2023-10-27</td>
-                                <td th:text="${income.category.name}">Category</td>
+                                <td th:text="${income.category.name + (income.subCategory != null ? ' - ' + income.subCategory.name : '')}">Category</td>
                                 <td class="fw-bold" th:text="${income.amount}">100.00</td>
                                 <td><span class="badge bg-info">Submitted</span></td>
                             </tr>
@@ -215,7 +215,7 @@
                             <tbody>
                             <tr th:each="income : ${approved}">
                                 <td th:text="${income.date}">2023-10-27</td>
-                                <td th:text="${income.category.name}">Category</td>
+                                <td th:text="${income.category.name + (income.subCategory != null ? ' - ' + income.subCategory.name : '')}">Category</td>
                                 <td class="fw-bold" th:text="${income.amount}">100.00</td>
                                 <td><span class="badge bg-success">Approved</span></td>
                             </tr>
@@ -267,7 +267,7 @@
                             <tbody>
                             <tr th:each="income : ${rejected}">
                                 <td th:text="${income.date}">2023-10-27</td>
-                                <td th:text="${income.category.name}">Category</td>
+                                <td th:text="${income.category.name + (income.subCategory != null ? ' - ' + income.subCategory.name : '')}">Category</td>
                                 <td class="fw-bold" th:text="${income.amount}">100.00</td>
                                 <td><span class="badge bg-danger">Rejected</span></td>
                                 <td>

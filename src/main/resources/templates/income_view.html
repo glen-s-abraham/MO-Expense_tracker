@@ -20,8 +20,13 @@
                         <span class="badge bg-warning text-dark" th:text="${income.status}">QUERIES_RAISED</span>
                     </div>
                     <div class="card-body">
-                        <div class="mb-3">
-                            <strong>Category:</strong> <span th:text="${income.category.name}"></span>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <strong>Category:</strong> <span th:text="${income.category.name}"></span>
+                            </div>
+                            <div class="col-md-6" th:if="${income.subCategory != null}">
+                                <strong>SubCategory:</strong> <span th:text="${income.subCategory.name}"></span>
+                            </div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-6">

@@ -181,6 +181,15 @@ body {
     box-shadow: var(--shadow-sm);
 }
 
+.nav-pills .nav-link.active {
+    color: white !important;
+    box-shadow: var(--shadow-sm);
+}
+
+.nav-pills .nav-link.active.text-dark {
+    color: var(--text-main) !important;
+}
+
 /* Utilities */
 /* Spacing below navbar */
 body>nav.navbar+.container,

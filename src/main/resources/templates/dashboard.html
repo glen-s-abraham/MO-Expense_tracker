@@ -7,17 +7,16 @@
             border: none;
             border-radius: 1rem;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
             overflow: hidden;
             position: relative;
         }
         .kpi-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.12), 0 4px 6px -2px rgba(0, 0, 0, 0.06);
         }
-        .kpi-card .card-body {
-            position: relative;
-            z-index: 1;
+        .kpi-clickable {
+            cursor: pointer;
         }
         .bg-gradient-income {
             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
@@ -29,6 +28,18 @@
         }
         .bg-gradient-balance {
             background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+        }
+        .bg-gradient-capital {
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            color: white;
+        }
+        .bg-gradient-loan {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+            color: white;
+        }
+        .bg-gradient-cash {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             color: white;
         }
         .chart-container {
@@ -56,7 +67,7 @@
         .section-title {
             position: relative;
             padding-bottom: 10px;
-            margin-bottom: 30px;
+            margin-bottom: 24px;
         }
         .section-title::after {
             content: '';
@@ -80,10 +91,6 @@
             border-bottom: 3px solid #3b82f6;
             background: transparent;
         }
-        .nav-tabs .nav-link:hover:not(.active) {
-            border-bottom: 3px solid #cbd5e1;
-            color: #334155;
-        }
         .filter-form {
             background: #ffffff;
             padding: 1rem;
@@ -96,23 +103,27 @@
 <nav th:replace="~{layout :: navbar}"></nav>
 
 <div class="container py-5">
-    
+
     <!-- ==========================================
-         SECTION 1: LIFETIME TOTALS 
+         SECTION 1: LIFETIME FINANCIAL OVERVIEW
          ========================================== -->
     <div class="mb-5">
         <h2 class="h3 fw-bold section-title">Lifetime Financial Overview</h2>
-        <p class="text-muted mb-4">Total aggregates from commencement of business.</p>
+        <p class="text-muted mb-4">Segregated Operational P&amp;L vs. Balance Sheet Financing &amp; Liquidity from commencement of business.</p>
 
-        <!-- Main KPI Cards -->
+        <!-- Row 1: Operational P&L -->
+        <h6 class="text-uppercase text-muted fw-bold small mb-2">
+            <i class="fas fa-chart-line me-1 text-success"></i>Operational Profit &amp; Loss (P&amp;L)
+        </h6>
         <div class="row g-4 mb-4">
             <div class="col-md-4">
                 <div class="card kpi-card bg-gradient-income h-100">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <p class="text-white-50 mb-1 fw-medium text-uppercase text-xs">Total Income</p>
+                                <p class="text-white-50 mb-1 fw-medium text-uppercase small">Operational Income</p>
                                 <h3 class="mb-0 fw-bold">₹ <span th:text="${#numbers.formatDecimal(globalTotalIncome, 1, 'COMMA', 2, 'POINT')}">0.00</span></h3>
+                                <small class="text-white-50">Sales, Property Sales &amp; Other Revenue</small>
                             </div>
                             <div class="bg-white bg-opacity-25 rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
                                 <i class="fas fa-arrow-trend-up fa-lg"></i>
@@ -126,8 +137,9 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <p class="text-white-50 mb-1 fw-medium text-uppercase text-xs">Total Expenses</p>
+                                <p class="text-white-50 mb-1 fw-medium text-uppercase small">Operational Expenses</p>
                                 <h3 class="mb-0 fw-bold">₹ <span th:text="${#numbers.formatDecimal(globalTotalExpense, 1, 'COMMA', 2, 'POINT')}">0.00</span></h3>
+                                <small class="text-white-50">Farm Operations &amp; Interest Costs</small>
                             </div>
                             <div class="bg-white bg-opacity-25 rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
                                 <i class="fas fa-arrow-trend-down fa-lg"></i>
@@ -141,11 +153,12 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <p class="text-white-50 mb-1 fw-medium text-uppercase text-xs">Net Balance</p>
+                                <p class="text-white-50 mb-1 fw-medium text-uppercase small">Net Operating Profit</p>
                                 <h3 class="mb-0 fw-bold">₹ <span th:text="${#numbers.formatDecimal(globalNetBalance, 1, 'COMMA', 2, 'POINT')}">0.00</span></h3>
+                                <small class="text-white-50">Operational Income − Expenses</small>
                             </div>
                             <div class="bg-white bg-opacity-25 rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                                <i class="fas fa-wallet fa-lg"></i>
+                                <i class="fas fa-scale-balanced fa-lg"></i>
                             </div>
                         </div>
                     </div>
@@ -153,8 +166,80 @@
             </div>
         </div>
 
-        <!-- Income Category Aggregates (Lifetime) -->
-        <h5 class="text-muted mt-4 mb-3">Lifetime Income Categories</h5>
+        <!-- Row 2: Financing & Liquidity (Click Pool Cards to Expand) -->
+        <h6 class="text-uppercase text-muted fw-bold small mb-2">
+            <i class="fas fa-landmark me-1 text-primary"></i>Financing, Balance Sheet Pools &amp; Liquidity <span class="badge bg-secondary ms-1">Click Pools to Expand</span>
+        </h6>
+        <div class="row g-4 mb-4">
+            <!-- Net Capital Pool (Expandable on Click) -->
+            <div class="col-md-4">
+                <div class="card kpi-card kpi-clickable bg-gradient-capital h-100"
+                     data-bs-toggle="modal" data-bs-target="#capitalPoolModal" title="Click to expand Capital & Drawings breakdown">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <p class="text-white-50 mb-1 fw-medium text-uppercase small">
+                                    Net Capital Pool <i class="fas fa-expand-alt ms-1"></i>
+                                </p>
+                                <h3 class="mb-1 fw-bold">₹ <span th:text="${#numbers.formatDecimal(globalNetCapital, 1, 'COMMA', 2, 'POINT')}">0.00</span></h3>
+                                <small class="text-white d-block opacity-75">
+                                    Introduced: ₹<span th:text="${#numbers.formatDecimal(globalCapitalIntroduced, 1, 'COMMA', 0, 'POINT')}">0</span>
+                                    | Drawings: ₹<span th:text="${#numbers.formatDecimal(globalCapitalDrawings, 1, 'COMMA', 0, 'POINT')}">0</span>
+                                </small>
+                            </div>
+                            <div class="bg-white bg-opacity-25 rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                <i class="fas fa-hand-holding-dollar fa-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Outstanding Loan Pool (Expandable on Click) -->
+            <div class="col-md-4">
+                <div class="card kpi-card kpi-clickable bg-gradient-loan h-100"
+                     data-bs-toggle="modal" data-bs-target="#loanPoolModal" title="Click to expand individual loans & repayment status">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <p class="text-white-50 mb-1 fw-medium text-uppercase small">
+                                    Outstanding Loan Pool <i class="fas fa-expand-alt ms-1"></i>
+                                </p>
+                                <h3 class="mb-1 fw-bold">₹ <span th:text="${#numbers.formatDecimal(globalOutstandingLoans, 1, 'COMMA', 2, 'POINT')}">0.00</span></h3>
+                                <small class="text-white d-block opacity-75">
+                                    Borrowed: ₹<span th:text="${#numbers.formatDecimal(globalLoansBorrowed, 1, 'COMMA', 0, 'POINT')}">0</span>
+                                    | Repaid: ₹<span th:text="${#numbers.formatDecimal(globalLoansRepaid, 1, 'COMMA', 0, 'POINT')}">0</span>
+                                </small>
+                            </div>
+                            <div class="bg-white bg-opacity-25 rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                <i class="fas fa-building-columns fa-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Net Cash Position -->
+            <div class="col-md-4">
+                <div class="card kpi-card bg-gradient-cash h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <p class="text-white-50 mb-1 fw-medium text-uppercase small">Net Cash Position</p>
+                                <h3 class="mb-1 fw-bold">₹ <span th:text="${#numbers.formatDecimal(globalNetCashPosition, 1, 'COMMA', 2, 'POINT')}">0.00</span></h3>
+                                <small class="text-white-50 d-block">Operating Profit + Net Capital + Net Loans</small>
+                            </div>
+                            <div class="bg-white bg-opacity-25 rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                <i class="fas fa-vault fa-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Operational Income Category Aggregates (Lifetime) -->
+        <h5 class="text-muted mt-4 mb-3">Lifetime Operational Income Categories</h5>
         <div class="row g-3 mb-4">
             <div class="col-md-3" th:each="cat : ${globalIncomesByCategory}">
                 <div class="card border-0 shadow-sm rounded-3 bg-white h-100 border-start border-4 border-success">
@@ -167,7 +252,7 @@
         </div>
 
         <!-- Expense Category Aggregates (Lifetime) -->
-        <h5 class="text-muted mt-4 mb-3">Lifetime Expense Categories</h5>
+        <h5 class="text-muted mt-4 mb-3">Lifetime Operational Expense Categories</h5>
         <div class="row g-3">
             <div class="col-md-3" th:each="cat : ${globalExpensesByCategory}">
                 <div class="card border-0 shadow-sm rounded-3 bg-white h-100 border-start border-4 border-danger">
@@ -179,11 +264,11 @@
             </div>
         </div>
     </div>
-    
+
     <hr class="my-5 opacity-25">
 
     <!-- ==========================================
-         SECTION 2: TABBED SNAPSHOTS 
+         SECTION 2: TABBED SNAPSHOTS (Monthly & Yearly FY)
          ========================================== -->
     <div class="mb-5">
         <ul class="nav nav-tabs border-bottom-0 mb-4" id="snapshotTabs" role="tablist">
@@ -196,15 +281,15 @@
         </ul>
 
         <div class="tab-content" id="snapshotTabsContent">
-            
+
             <!-- MONTHLY TAB PANE -->
             <div class="tab-pane fade" th:classappend="${activeTab == 'monthly'} ? 'show active' : ''" id="monthly-pane" role="tabpanel" aria-labelledby="monthly-tab">
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
                     <div>
                         <h3 class="h4 fw-bold mb-0 text-gray-800">Monthly Snapshot</h3>
-                        <p class="text-muted mt-1 mb-0">Analytics for <span class="fw-bold" th:text="${selectedMonthName + ' ' + selectedYear}">MONTH YEAR</span></p>
+                        <p class="text-muted mt-1 mb-0">4-Pillar Analytics for <span class="fw-bold" th:text="${selectedMonthName + ' ' + selectedYear}">MONTH YEAR</span></p>
                     </div>
-                    
+
                     <div class="filter-form">
                         <form action="/dashboard" method="get" class="d-flex align-items-center gap-2 m-0">
                             <input type="hidden" name="activeTab" value="monthly">
@@ -212,15 +297,15 @@
                             <div class="input-group input-group-sm flex-nowrap">
                                 <span class="input-group-text bg-light border-end-0"><i class="fas fa-calendar-alt text-muted"></i></span>
                                 <select name="month" class="form-select border-start-0 ps-0" style="min-width: 120px;">
-                                    <option th:each="m : ${availableMonths}" 
-                                            th:value="${m.key}" 
+                                    <option th:each="m : ${availableMonths}"
+                                            th:value="${m.key}"
                                             th:text="${m.value}"
                                             th:selected="${m.key == selectedMonth}"></option>
                                 </select>
                             </div>
                             <select name="year" class="form-select form-select-sm" style="min-width: 100px;">
-                                <option th:each="y : ${availableYears}" 
-                                        th:value="${y}" 
+                                <option th:each="y : ${availableYears}"
+                                        th:value="${y}"
                                         th:text="${y}"
                                         th:selected="${y == selectedYear}"></option>
                             </select>
@@ -229,36 +314,73 @@
                     </div>
                 </div>
 
-                <!-- Monthly Mini KPIs -->
+                <!-- Monthly Operational P&L KPIs -->
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm rounded-3">
+                            <div class="card-body py-3 px-3">
+                                <span class="text-muted small fw-bold text-uppercase">Monthly Operational Income</span>
+                                <h5 class="text-success mb-0 mt-1">₹&nbsp;<span th:text="${#numbers.formatDecimal(monthlyTotalIncome, 1, 'COMMA', 2, 'POINT')}">0.00</span></h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm rounded-3">
+                            <div class="card-body py-3 px-3">
+                                <span class="text-muted small fw-bold text-uppercase">Monthly Operational Expense</span>
+                                <h5 class="text-danger mb-0 mt-1">₹&nbsp;<span th:text="${#numbers.formatDecimal(monthlyTotalExpense, 1, 'COMMA', 2, 'POINT')}">0.00</span></h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm rounded-3">
+                            <div class="card-body py-3 px-3">
+                                <span class="text-muted small fw-bold text-uppercase">Monthly Operating Profit</span>
+                                <h5 class="text-primary mb-0 mt-1">₹&nbsp;<span th:text="${#numbers.formatDecimal(monthlyNetBalance, 1, 'COMMA', 2, 'POINT')}">0.00</span></h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monthly Financing & Cash Flow KPIs -->
                 <div class="row g-3 mb-4">
                     <div class="col-md-4">
-                        <div class="card border-0 shadow-sm rounded-3">
+                        <div class="card border-0 shadow-sm rounded-3 border-start border-4 border-info">
                             <div class="card-body py-3 px-3">
-                                <span class="text-muted small fw-bold text-uppercase text-nowrap">Monthly Income</span>
-                                <h5 class="text-success mb-0 mt-1 text-nowrap">₹&nbsp;<span th:text="${#numbers.formatDecimal(monthlyTotalIncome, 1, 'COMMA', 2, 'POINT')}">0.00</span></h5>
+                                <span class="text-muted small fw-bold text-uppercase">Monthly Net Capital Flow</span>
+                                <h5 class="text-info mb-0 mt-1">₹&nbsp;<span th:text="${#numbers.formatDecimal(monthlyNetCapitalFlow, 1, 'COMMA', 2, 'POINT')}">0.00</span></h5>
+                                <small class="text-muted">
+                                    +Introduced: ₹<span th:text="${#numbers.formatDecimal(monthlyCapitalIntroduced, 1, 'COMMA', 0, 'POINT')}">0</span>
+                                    | -Drawings: ₹<span th:text="${#numbers.formatDecimal(monthlyCapitalDrawings, 1, 'COMMA', 0, 'POINT')}">0</span>
+                                </small>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="card border-0 shadow-sm rounded-3">
+                        <div class="card border-0 shadow-sm rounded-3 border-start border-4" style="border-color: #8b5cf6 !important;">
                             <div class="card-body py-3 px-3">
-                                <span class="text-muted small fw-bold text-uppercase text-nowrap">Monthly Expense</span>
-                                <h5 class="text-danger mb-0 mt-1 text-nowrap">₹&nbsp;<span th:text="${#numbers.formatDecimal(monthlyTotalExpense, 1, 'COMMA', 2, 'POINT')}">0.00</span></h5>
+                                <span class="text-muted small fw-bold text-uppercase">Monthly Net Loan Flow</span>
+                                <h5 class="mb-0 mt-1" style="color: #6d28d9;">₹&nbsp;<span th:text="${#numbers.formatDecimal(monthlyNetLoanFlow, 1, 'COMMA', 2, 'POINT')}">0.00</span></h5>
+                                <small class="text-muted">
+                                    +Borrowed: ₹<span th:text="${#numbers.formatDecimal(monthlyLoansBorrowed, 1, 'COMMA', 0, 'POINT')}">0</span>
+                                    | -Repaid: ₹<span th:text="${#numbers.formatDecimal(monthlyLoansRepaid, 1, 'COMMA', 0, 'POINT')}">0</span>
+                                </small>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="card border-0 shadow-sm rounded-3">
+                        <div class="card border-0 shadow-sm rounded-3 border-start border-4 border-dark">
                             <div class="card-body py-3 px-3">
-                                <span class="text-muted small fw-bold text-uppercase text-nowrap">Monthly Net</span>
-                                <h5 class="text-primary mb-0 mt-1 text-nowrap">₹&nbsp;<span th:text="${#numbers.formatDecimal(monthlyNetBalance, 1, 'COMMA', 2, 'POINT')}">0.00</span></h5>
+                                <span class="text-muted small fw-bold text-uppercase">Monthly Net Cash Flow</span>
+                                <h5 class="text-dark mb-0 mt-1">₹&nbsp;<span th:text="${#numbers.formatDecimal(monthlyNetCashFlow, 1, 'COMMA', 2, 'POINT')}">0.00</span></h5>
+                                <small class="text-muted">Operating + Capital + Loan Flows</small>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Income Category Aggregates (Monthly) -->
-                <h6 class="text-muted mt-4 mb-3">Monthly Income Breakdown</h6>
+                <h6 class="text-muted mt-4 mb-3">Monthly Operational Income Breakdown</h6>
                 <div class="row g-3 mb-4">
                     <div class="col-md-3 col-sm-4" th:each="cat : ${monthlyIncomesByCategory}">
                         <div class="card border-0 shadow-sm rounded-3 bg-white h-100 border-start border-3 border-success category-card" style="cursor: pointer;"
@@ -272,7 +394,7 @@
                 </div>
 
                 <!-- Expense Category Aggregates (Monthly) -->
-                <h6 class="text-muted mt-4 mb-3">Monthly Expense Breakdown</h6>
+                <h6 class="text-muted mt-4 mb-3">Monthly Operational Expense Breakdown</h6>
                 <div class="row g-3 mb-5">
                     <div class="col-md-3 col-sm-4" th:each="cat : ${monthlyExpensesByCategory}">
                         <div class="card border-0 shadow-sm rounded-3 bg-white h-100 border-start border-3 border-danger category-card" style="cursor: pointer;"
@@ -290,7 +412,7 @@
                     <div class="col-12">
                         <div class="card chart-card">
                             <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                                <h6 class="m-0 font-weight-bold">Daily Income & Expense Tracker</h6>
+                                <h6 class="m-0 font-weight-bold">Daily Operational Income &amp; Expense Tracker</h6>
                             </div>
                             <div class="card-body">
                                 <div class="line-chart-container">
@@ -306,7 +428,7 @@
                     <div class="col-lg-6">
                         <div class="card chart-card h-100">
                             <div class="card-header py-3">
-                                <h6 class="m-0 font-weight-bold">Income by Category</h6>
+                                <h6 class="m-0 font-weight-bold">Operational Income by Category</h6>
                             </div>
                             <div class="card-body">
                                 <div class="chart-container">
@@ -318,7 +440,7 @@
                     <div class="col-lg-6">
                         <div class="card chart-card h-100">
                             <div class="card-header py-3">
-                                <h6 class="m-0 font-weight-bold">Expenses by Category</h6>
+                                <h6 class="m-0 font-weight-bold">Operational Expenses by Category</h6>
                             </div>
                             <div class="card-body">
                                 <div class="chart-container">
@@ -334,10 +456,10 @@
             <div class="tab-pane fade" th:classappend="${activeTab == 'yearly'} ? 'show active' : ''" id="yearly-pane" role="tabpanel" aria-labelledby="yearly-tab">
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
                     <div>
-                        <h3 class="h4 fw-bold mb-0 text-gray-800">Yearly Snapshot</h3>
-                        <p class="text-muted mt-1 mb-0">Analytics for Financial Year <span class="fw-bold" th:text="${selectedFy}">FY</span></p>
+                        <h3 class="h4 fw-bold mb-0 text-gray-800">Yearly Snapshot (FY)</h3>
+                        <p class="text-muted mt-1 mb-0">4-Pillar Analytics for Financial Year <span class="fw-bold" th:text="${selectedFy}">FY</span></p>
                     </div>
-                    
+
                     <div class="filter-form">
                         <form action="/dashboard" method="get" class="d-flex align-items-center gap-2 m-0">
                             <input type="hidden" name="activeTab" value="yearly">
@@ -346,8 +468,8 @@
                             <div class="input-group input-group-sm flex-nowrap">
                                 <span class="input-group-text bg-light border-end-0">FY</span>
                                 <select name="fy" class="form-select border-start-0 ps-0" style="min-width: 140px;">
-                                    <option th:each="f : ${availableFys}" 
-                                            th:value="${f}" 
+                                    <option th:each="f : ${availableFys}"
+                                            th:value="${f}"
                                             th:text="${f}"
                                             th:selected="${f == selectedFy}"></option>
                                 </select>
@@ -357,36 +479,73 @@
                     </div>
                 </div>
 
-                <!-- Yearly Mini KPIs -->
+                <!-- Yearly Operational P&L KPIs -->
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm rounded-3">
+                            <div class="card-body py-3 px-3">
+                                <span class="text-muted small fw-bold text-uppercase">Yearly Operational Income</span>
+                                <h5 class="text-success mb-0 mt-1">₹&nbsp;<span th:text="${#numbers.formatDecimal(fyTotalIncome, 1, 'COMMA', 2, 'POINT')}">0.00</span></h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm rounded-3">
+                            <div class="card-body py-3 px-3">
+                                <span class="text-muted small fw-bold text-uppercase">Yearly Operational Expense</span>
+                                <h5 class="text-danger mb-0 mt-1">₹&nbsp;<span th:text="${#numbers.formatDecimal(fyTotalExpense, 1, 'COMMA', 2, 'POINT')}">0.00</span></h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm rounded-3">
+                            <div class="card-body py-3 px-3">
+                                <span class="text-muted small fw-bold text-uppercase">Yearly Operating Profit</span>
+                                <h5 class="text-primary mb-0 mt-1">₹&nbsp;<span th:text="${#numbers.formatDecimal(fyNetBalance, 1, 'COMMA', 2, 'POINT')}">0.00</span></h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Yearly Financing & Cash Flow KPIs -->
                 <div class="row g-3 mb-4">
                     <div class="col-md-4">
-                        <div class="card border-0 shadow-sm rounded-3">
+                        <div class="card border-0 shadow-sm rounded-3 border-start border-4 border-info">
                             <div class="card-body py-3 px-3">
-                                <span class="text-muted small fw-bold text-uppercase text-nowrap">Yearly Income</span>
-                                <h5 class="text-success mb-0 mt-1 text-nowrap">₹&nbsp;<span th:text="${#numbers.formatDecimal(fyTotalIncome, 1, 'COMMA', 2, 'POINT')}">0.00</span></h5>
+                                <span class="text-muted small fw-bold text-uppercase">Yearly Net Capital Flow</span>
+                                <h5 class="text-info mb-0 mt-1">₹&nbsp;<span th:text="${#numbers.formatDecimal(fyNetCapitalFlow, 1, 'COMMA', 2, 'POINT')}">0.00</span></h5>
+                                <small class="text-muted">
+                                    +Introduced: ₹<span th:text="${#numbers.formatDecimal(fyCapitalIntroduced, 1, 'COMMA', 0, 'POINT')}">0</span>
+                                    | -Drawings: ₹<span th:text="${#numbers.formatDecimal(fyCapitalDrawings, 1, 'COMMA', 0, 'POINT')}">0</span>
+                                </small>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="card border-0 shadow-sm rounded-3">
+                        <div class="card border-0 shadow-sm rounded-3 border-start border-4" style="border-color: #8b5cf6 !important;">
                             <div class="card-body py-3 px-3">
-                                <span class="text-muted small fw-bold text-uppercase text-nowrap">Yearly Expense</span>
-                                <h5 class="text-danger mb-0 mt-1 text-nowrap">₹&nbsp;<span th:text="${#numbers.formatDecimal(fyTotalExpense, 1, 'COMMA', 2, 'POINT')}">0.00</span></h5>
+                                <span class="text-muted small fw-bold text-uppercase">Yearly Net Loan Flow</span>
+                                <h5 class="mb-0 mt-1" style="color: #6d28d9;">₹&nbsp;<span th:text="${#numbers.formatDecimal(fyNetLoanFlow, 1, 'COMMA', 2, 'POINT')}">0.00</span></h5>
+                                <small class="text-muted">
+                                    +Borrowed: ₹<span th:text="${#numbers.formatDecimal(fyLoansBorrowed, 1, 'COMMA', 0, 'POINT')}">0</span>
+                                    | -Repaid: ₹<span th:text="${#numbers.formatDecimal(fyLoansRepaid, 1, 'COMMA', 0, 'POINT')}">0</span>
+                                </small>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="card border-0 shadow-sm rounded-3">
+                        <div class="card border-0 shadow-sm rounded-3 border-start border-4 border-dark">
                             <div class="card-body py-3 px-3">
-                                <span class="text-muted small fw-bold text-uppercase text-nowrap">Yearly Net</span>
-                                <h5 class="text-primary mb-0 mt-1 text-nowrap">₹&nbsp;<span th:text="${#numbers.formatDecimal(fyNetBalance, 1, 'COMMA', 2, 'POINT')}">0.00</span></h5>
+                                <span class="text-muted small fw-bold text-uppercase">Yearly Net Cash Flow</span>
+                                <h5 class="text-dark mb-0 mt-1">₹&nbsp;<span th:text="${#numbers.formatDecimal(fyNetCashFlow, 1, 'COMMA', 2, 'POINT')}">0.00</span></h5>
+                                <small class="text-muted">Operating + Capital + Loan Flows</small>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Income Category Aggregates (Yearly) -->
-                <h6 class="text-muted mt-4 mb-3">Yearly Income Breakdown</h6>
+                <h6 class="text-muted mt-4 mb-3">Yearly Operational Income Breakdown</h6>
                 <div class="row g-3 mb-4">
                     <div class="col-md-3 col-sm-4" th:each="cat : ${fyIncomesByCategory}">
                         <div class="card border-0 shadow-sm rounded-3 bg-white h-100 border-start border-3 border-success category-card" style="cursor: pointer;"
@@ -400,7 +559,7 @@
                 </div>
 
                 <!-- Expense Category Aggregates (Yearly) -->
-                <h6 class="text-muted mt-4 mb-3">Yearly Expense Breakdown</h6>
+                <h6 class="text-muted mt-4 mb-3">Yearly Operational Expense Breakdown</h6>
                 <div class="row g-3 mb-5">
                     <div class="col-md-3 col-sm-4" th:each="cat : ${fyExpensesByCategory}">
                         <div class="card border-0 shadow-sm rounded-3 bg-white h-100 border-start border-3 border-danger category-card" style="cursor: pointer;"
@@ -418,7 +577,7 @@
                     <div class="col-12">
                         <div class="card chart-card">
                             <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                                <h6 class="m-0 font-weight-bold">Monthly Income & Expense Tracker (Apr - Mar)</h6>
+                                <h6 class="m-0 font-weight-bold">Monthly Operational Income &amp; Expense Tracker (Apr - Mar)</h6>
                             </div>
                             <div class="card-body">
                                 <div class="line-chart-container">
@@ -434,7 +593,7 @@
                     <div class="col-lg-6">
                         <div class="card chart-card h-100">
                             <div class="card-header py-3">
-                                <h6 class="m-0 font-weight-bold">Yearly Income by Category</h6>
+                                <h6 class="m-0 font-weight-bold">Yearly Operational Income by Category</h6>
                             </div>
                             <div class="card-body">
                                 <div class="chart-container">
@@ -446,7 +605,7 @@
                     <div class="col-lg-6">
                         <div class="card chart-card h-100">
                             <div class="card-header py-3">
-                                <h6 class="m-0 font-weight-bold">Yearly Expenses by Category</h6>
+                                <h6 class="m-0 font-weight-bold">Yearly Operational Expenses by Category</h6>
                             </div>
                             <div class="card-body">
                                 <div class="chart-container">
@@ -457,20 +616,212 @@
                     </div>
                 </div>
             </div>
-            
+
         </div>
     </div>
 
+</div>
+
+<!-- =========================================================
+     EXPANDABLE POOL MODAL 1: INDIVIDUAL LOAN POOL BREAKDOWN
+     ========================================================= -->
+<div class="modal fade" id="loanPoolModal" tabindex="-1" aria-labelledby="loanPoolModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-light">
+                <div>
+                    <h5 class="modal-title fw-bold" id="loanPoolModalLabel">
+                        <i class="fas fa-building-columns me-2 text-primary"></i>Outstanding Loan Pool — Individual Facilities Breakdown
+                    </h5>
+                    <small class="text-muted">Click any loan facility or navigate to the Loans section to record repayments.</small>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded border">
+                            <small class="text-muted text-uppercase fw-bold d-block">Total Borrowed</small>
+                            <h5 class="fw-bold mb-0" th:text="'₹' + ${#numbers.formatDecimal(globalLoansBorrowed, 1, 'COMMA', 2, 'POINT')}">₹0.00</h5>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded border">
+                            <small class="text-muted text-uppercase fw-bold d-block">Total Principal Repaid</small>
+                            <h5 class="fw-bold text-success mb-0" th:text="'₹' + ${#numbers.formatDecimal(globalLoansRepaid, 1, 'COMMA', 2, 'POINT')}">₹0.00</h5>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded border">
+                            <small class="text-muted text-uppercase fw-bold d-block">Net Outstanding Loan Pool</small>
+                            <h5 class="fw-bold text-danger mb-0" th:text="'₹' + ${#numbers.formatDecimal(globalOutstandingLoans, 1, 'COMMA', 2, 'POINT')}">₹0.00</h5>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Loan Facility</th>
+                            <th>Lender</th>
+                            <th>Start Date</th>
+                            <th class="text-end">Total Borrowed</th>
+                            <th class="text-end">Principal Repaid</th>
+                            <th class="text-end">Outstanding Balance</th>
+                            <th>Repayment Progress</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="loan : ${loanSummaries}">
+                            <td class="fw-bold" th:text="${loan.loanName}">Unsecured Loan From Father</td>
+                            <td th:text="${loan.lenderName}">Father</td>
+                            <td th:text="${loan.startDate}">2026-02-01</td>
+                            <td class="text-end" th:text="'₹' + ${#numbers.formatDecimal(loan.totalBorrowed, 1, 'COMMA', 2, 'POINT')}">₹0.00</td>
+                            <td class="text-end text-success" th:text="'₹' + ${#numbers.formatDecimal(loan.totalRepaid, 1, 'COMMA', 2, 'POINT')}">₹0.00</td>
+                            <td class="text-end fw-bold text-danger" th:text="'₹' + ${#numbers.formatDecimal(loan.outstandingBalance, 1, 'COMMA', 2, 'POINT')}">₹0.00</td>
+                            <td style="min-width: 140px;">
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-success" role="progressbar"
+                                         th:style="'width: ' + ${loan.repaymentProgressPercent} + '%'"></div>
+                                </div>
+                                <small class="text-muted" th:text="${loan.repaymentProgressPercent} + '%'">0%</small>
+                            </td>
+                            <td>
+                                <span class="badge" th:classappend="${loan.status.name() == 'ACTIVE'} ? 'bg-warning text-dark' : 'bg-success'"
+                                      th:text="${loan.status}">ACTIVE</span>
+                            </td>
+                            <td>
+                                <a th:if="${loan.outstandingBalance > 0}"
+                                   th:href="@{/loans/new(type='REPAYMENT', loanId=${loan.id})}"
+                                   class="btn btn-sm btn-outline-success">Repay</a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <a href="/loans" class="btn btn-primary">Open Loans &amp; Repayments Ledger</a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================================
+     EXPANDABLE POOL MODAL 2: NET CAPITAL POOL BREAKDOWN
+     ========================================================= -->
+<div class="modal fade" id="capitalPoolModal" tabindex="-1" aria-labelledby="capitalPoolModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-light">
+                <div>
+                    <h5 class="modal-title fw-bold" id="capitalPoolModalLabel">
+                        <i class="fas fa-hand-holding-dollar me-2 text-info"></i>Net Capital Pool — Introduced vs. Drawings Breakdown
+                    </h5>
+                    <small class="text-muted">Approved owner equity injections and drawings.</small>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded border">
+                            <small class="text-muted text-uppercase fw-bold d-block">Capital Introduced</small>
+                            <h5 class="fw-bold text-primary mb-0" th:text="'₹' + ${#numbers.formatDecimal(globalCapitalIntroduced, 1, 'COMMA', 2, 'POINT')}">₹0.00</h5>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded border">
+                            <small class="text-muted text-uppercase fw-bold d-block">Owner Drawings</small>
+                            <h5 class="fw-bold text-warning mb-0" th:text="'₹' + ${#numbers.formatDecimal(globalCapitalDrawings, 1, 'COMMA', 2, 'POINT')}">₹0.00</h5>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded border">
+                            <small class="text-muted text-uppercase fw-bold d-block">Net Capital Balance</small>
+                            <h5 class="fw-bold text-success mb-0" th:text="'₹' + ${#numbers.formatDecimal(globalNetCapital, 1, 'COMMA', 2, 'POINT')}">₹0.00</h5>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Description / Partner</th>
+                            <th class="text-end">Amount</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="cap : ${approvedCapitalTransactions}">
+                            <td th:text="${cap.date}">2026-02-01</td>
+                            <td>
+                                <span class="badge bg-primary" th:if="${cap.type.name() == 'INTRODUCED'}">Capital Introduced</span>
+                                <span class="badge bg-warning text-dark" th:if="${cap.type.name() == 'DRAWINGS'}">Drawings</span>
+                            </td>
+                            <td th:text="${cap.description}">Description</td>
+                            <td class="text-end fw-bold"
+                                th:classappend="${cap.type.name() == 'INTRODUCED'} ? 'text-primary' : 'text-warning'"
+                                th:text="(${cap.type.name() == 'INTRODUCED'} ? '+' : '-') + '₹' + ${#numbers.formatDecimal(cap.amount, 1, 'COMMA', 2, 'POINT')}">₹0.00</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <a href="/capital" class="btn btn-primary">Open Capital &amp; Drawings Ledger</a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Category Drilldown Modal -->
+<div class="modal fade" id="categoryDrilldownModal" tabindex="-1" aria-labelledby="categoryDrilldownModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-light border-bottom-0">
+                <h5 class="modal-title fw-bold" id="categoryDrilldownModalLabel">Category Breakdown</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div id="drilldownLoading" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+                <div id="drilldownContent" class="table-responsive d-none">
+                    <table class="table table-hover table-striped align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col" class="ps-4">Date</th>
+                                <th scope="col">Description</th>
+                                <th scope="col" class="text-end pe-4">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody id="drilldownTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer bg-light border-top-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <footer th:replace="~{layout :: footer}"></footer>
 <th:block th:replace="~{layout :: scripts}"></th:block>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Injecting Data from Thymeleaf to JavaScript Variables -->
 <script th:inline="javascript">
     /*<![CDATA[*/
-    // Monthly Data
     const expenseCategories = JSON.parse(/*[[${expenseCategoriesJson}]]*/ '[]');
     const expenseAmounts = JSON.parse(/*[[${expenseAmountsJson}]]*/ '[]');
     const incomeCategories = JSON.parse(/*[[${incomeCategoriesJson}]]*/ '[]');
@@ -478,8 +829,7 @@
     const days = JSON.parse(/*[[${daysJson}]]*/ '[]');
     const dailyExpenseAmounts = JSON.parse(/*[[${dailyExpenseAmountsJson}]]*/ '[]');
     const dailyIncomeAmounts = JSON.parse(/*[[${dailyIncomeAmountsJson}]]*/ '[]');
-    
-    // Yearly Data
+
     const fyExpenseCategories = JSON.parse(/*[[${fyExpenseCategoriesJson}]]*/ '[]');
     const fyExpenseAmounts = JSON.parse(/*[[${fyExpenseAmountsJson}]]*/ '[]');
     const fyIncomeCategories = JSON.parse(/*[[${fyIncomeCategoriesJson}]]*/ '[]');
@@ -489,14 +839,12 @@
     const fyMonthlyIncomeAmounts = JSON.parse(/*[[${fyMonthlyIncomeAmountsJson}]]*/ '[]');
     /*]]>*/
 
-    // Common Chart.js Options for Aesthetics
     Chart.defaults.font.family = "'Inter', 'Roboto', sans-serif";
     Chart.defaults.color = '#64748b';
 
-    // Color Palettes for Categories
     const incomeColors = ['#10b981', '#34d399', '#059669', '#6ee7b7', '#a7f3d0'];
     const expenseColors = ['#ef4444', '#f87171', '#dc2626', '#fca5a5', '#fecaca', '#b91c1c'];
-    
+
     const tooltipOptions = {
         backgroundColor: 'rgba(255, 255, 255, 0.9)',
         titleColor: '#1e293b',
@@ -520,7 +868,7 @@
         let gradientIncome = ctx.createLinearGradient(0, 0, 0, 400);
         gradientIncome.addColorStop(0, 'rgba(16, 185, 129, 0.3)');
         gradientIncome.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
-        
+
         let gradientExpense = ctx.createLinearGradient(0, 0, 0, 400);
         gradientExpense.addColorStop(0, 'rgba(239, 68, 68, 0.3)');
         gradientExpense.addColorStop(1, 'rgba(239, 68, 68, 0.0)');
@@ -531,28 +879,20 @@
                 labels: labels,
                 datasets: [
                     {
-                        label: 'Income (₹)',
+                        label: 'Operational Income (₹)',
                         data: dataIncome,
                         borderColor: '#10b981',
                         backgroundColor: gradientIncome,
                         borderWidth: 2,
-                        pointBackgroundColor: '#10b981',
-                        pointBorderColor: '#fff',
-                        pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: '#10b981',
                         fill: true,
                         tension: 0.4
                     },
                     {
-                        label: 'Expense (₹)',
+                        label: 'Operational Expense (₹)',
                         data: dataExpense,
                         borderColor: '#ef4444',
                         backgroundColor: gradientExpense,
                         borderWidth: 2,
-                        pointBackgroundColor: '#ef4444',
-                        pointBorderColor: '#fff',
-                        pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: '#ef4444',
                         fill: true,
                         tension: 0.4
                     }
@@ -561,46 +901,13 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                interaction: {
-                    mode: 'index',
-                    intersect: false,
-                },
+                interaction: { mode: 'index', intersect: false },
                 plugins: {
-                    tooltip: {
-                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                        titleColor: '#1e293b',
-                        bodyColor: '#475569',
-                        borderColor: '#e2e8f0',
-                        borderWidth: 1,
-                        padding: 12,
-                        boxPadding: 6,
-                        usePointStyle: true,
-                    },
-                    legend: {
-                        position: 'top',
-                        labels: {
-                            usePointStyle: true,
-                            padding: 20
-                        }
-                    }
+                    legend: { position: 'top', labels: { usePointStyle: true, padding: 20 } }
                 },
                 scales: {
-                    x: {
-                        grid: { display: false },
-                        title: { display: true, text: xLabel }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: '#f1f5f9',
-                            drawBorder: false
-                        },
-                        ticks: {
-                            callback: function(value) {
-                                return '₹ ' + value.toLocaleString();
-                            }
-                        }
-                    }
+                    x: { grid: { display: false }, title: { display: true, text: xLabel } },
+                    y: { beginAtZero: true }
                 }
             }
         });
@@ -611,151 +918,78 @@
             type: 'doughnut',
             data: {
                 labels: labels,
-                datasets: [{
-                    data: data,
-                    backgroundColor: colors,
-                    borderWidth: 0,
-                    hoverOffset: 4
-                }]
+                datasets: [{ data: data, backgroundColor: colors, borderWidth: 0, hoverOffset: 4 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 cutout: '70%',
                 plugins: {
-                    legend: {
-                        position: 'right',
-                        labels: { usePointStyle: true, padding: 15 }
-                    },
+                    legend: { position: 'right', labels: { usePointStyle: true, padding: 15 } },
                     tooltip: tooltipOptions
                 }
             }
         });
     }
 
-    // Initialize Monthly Charts
-    const ctxMonthlyTracker = document.getElementById('monthlyTrackerChart').getContext('2d');
-    initLineChart(ctxMonthlyTracker, days, dailyIncomeAmounts, dailyExpenseAmounts, 'Day of Month');
+    initLineChart(document.getElementById('monthlyTrackerChart').getContext('2d'), days, dailyIncomeAmounts, dailyExpenseAmounts, 'Day of Month');
+    initDoughnutChart(document.getElementById('monthlyIncomeCategoryChart').getContext('2d'), incomeCategories, incomeAmounts, incomeColors);
+    initDoughnutChart(document.getElementById('monthlyExpenseCategoryChart').getContext('2d'), expenseCategories, expenseAmounts, expenseColors);
 
-    const ctxMonthlyIncomeCat = document.getElementById('monthlyIncomeCategoryChart').getContext('2d');
-    initDoughnutChart(ctxMonthlyIncomeCat, incomeCategories, incomeAmounts, incomeColors);
+    initLineChart(document.getElementById('yearlyTrackerChart').getContext('2d'), fyMonths, fyMonthlyIncomeAmounts, fyMonthlyExpenseAmounts, 'Month (FY)');
+    initDoughnutChart(document.getElementById('yearlyIncomeCategoryChart').getContext('2d'), fyIncomeCategories, fyIncomeAmounts, incomeColors);
+    initDoughnutChart(document.getElementById('yearlyExpenseCategoryChart').getContext('2d'), fyExpenseCategories, fyExpenseAmounts, expenseColors);
 
-    const ctxMonthlyExpenseCat = document.getElementById('monthlyExpenseCategoryChart').getContext('2d');
-    initDoughnutChart(ctxMonthlyExpenseCat, expenseCategories, expenseAmounts, expenseColors);
+    function showCategoryDetails(element) {
+        const type = element.getAttribute('data-type');
+        const category = element.getAttribute('data-category');
+        const startDate = element.getAttribute('data-start');
+        const endDate = element.getAttribute('data-end');
 
+        document.getElementById('categoryDrilldownModalLabel').innerText = category + ' Breakdown';
 
-    // Initialize Yearly Charts
-    const ctxYearlyTracker = document.getElementById('yearlyTrackerChart').getContext('2d');
-    initLineChart(ctxYearlyTracker, fyMonths, fyMonthlyIncomeAmounts, fyMonthlyExpenseAmounts, 'Month (FY)');
+        const modal = new bootstrap.Modal(document.getElementById('categoryDrilldownModal'));
+        modal.show();
 
-    const ctxYearlyIncomeCat = document.getElementById('yearlyIncomeCategoryChart').getContext('2d');
-    initDoughnutChart(ctxYearlyIncomeCat, fyIncomeCategories, fyIncomeAmounts, incomeColors);
+        document.getElementById('drilldownLoading').classList.remove('d-none');
+        document.getElementById('drilldownContent').classList.add('d-none');
 
-    const ctxYearlyExpenseCat = document.getElementById('yearlyExpenseCategoryChart').getContext('2d');
-    initDoughnutChart(ctxYearlyExpenseCat, fyExpenseCategories, fyExpenseAmounts, expenseColors);
+        fetch(`/api/dashboard/category-breakdown?type=${type}&category=${encodeURIComponent(category)}&startDate=${startDate}&endDate=${endDate}`)
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.getElementById('drilldownTableBody');
+                tbody.innerHTML = '';
 
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted py-4">No data found</td></tr>';
+                } else {
+                    data.forEach(item => {
+                        const tr = document.createElement('tr');
+                        const tdDate = document.createElement('td');
+                        tdDate.className = 'ps-4 text-muted small';
+                        tdDate.textContent = item.date;
+
+                        const tdDesc = document.createElement('td');
+                        tdDesc.className = 'fw-medium text-dark';
+                        tdDesc.textContent = item.description;
+
+                        const tdAmount = document.createElement('td');
+                        tdAmount.className = 'text-end pe-4 text-danger fw-bold';
+                        tdAmount.textContent = new Intl.NumberFormat('en-IN', {
+                            style: 'currency', currency: 'INR', minimumFractionDigits: 2
+                        }).format(item.amount);
+
+                        tr.appendChild(tdDate);
+                        tr.appendChild(tdDesc);
+                        tr.appendChild(tdAmount);
+                        tbody.appendChild(tr);
+                    });
+                }
+
+                document.getElementById('drilldownLoading').classList.add('d-none');
+                document.getElementById('drilldownContent').classList.remove('d-none');
+            });
+    }
 </script>
-    <!-- Category Drilldown Modal -->
-    <div class="modal fade" id="categoryDrilldownModal" tabindex="-1" aria-labelledby="categoryDrilldownModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header bg-light border-bottom-0">
-                    <h5 class="modal-title fw-bold" id="categoryDrilldownModalLabel">Category Breakdown</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body p-0">
-                    <div id="drilldownLoading" class="text-center py-5">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                    </div>
-                    <div id="drilldownContent" class="table-responsive d-none">
-                        <table class="table table-hover table-striped align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th scope="col" class="ps-4">Date</th>
-                                    <th scope="col">Description</th>
-                                    <th scope="col" class="text-end pe-4">Amount</th>
-                                </tr>
-                            </thead>
-                            <tbody id="drilldownTableBody">
-                                <!-- Data populated via JS -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="modal-footer bg-light border-top-0">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Bootstrap JS Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
-    <script>
-        function showCategoryDetails(element) {
-            const type = element.getAttribute('data-type');
-            const category = element.getAttribute('data-category');
-            const startDate = element.getAttribute('data-start');
-            const endDate = element.getAttribute('data-end');
-            
-            document.getElementById('categoryDrilldownModalLabel').innerText = category + ' Breakdown';
-            
-            const modal = new bootstrap.Modal(document.getElementById('categoryDrilldownModal'));
-            modal.show();
-            
-            document.getElementById('drilldownLoading').classList.remove('d-none');
-            document.getElementById('drilldownContent').classList.add('d-none');
-            
-            fetch(`/api/dashboard/category-breakdown?type=${type}&category=${encodeURIComponent(category)}&startDate=${startDate}&endDate=${endDate}`)
-                .then(response => response.json())
-                .then(data => {
-                    const tbody = document.getElementById('drilldownTableBody');
-                    tbody.innerHTML = '';
-                    
-                    if (data.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted py-4">No data found</td></tr>';
-                    } else {
-                        data.forEach(item => {
-                            const tr = document.createElement('tr');
-                            
-                            const tdDate = document.createElement('td');
-                            tdDate.className = 'ps-4 text-muted small';
-                            tdDate.textContent = item.date;
-                            
-                            const tdDesc = document.createElement('td');
-                            tdDesc.className = 'fw-medium text-dark';
-                            tdDesc.textContent = item.description;
-                            
-                            const tdAmount = document.createElement('td');
-                            tdAmount.className = 'text-end pe-4 text-danger fw-bold';
-                            // Format number nicely
-                            const formattedAmt = new Intl.NumberFormat('en-IN', {
-                                style: 'currency',
-                                currency: 'INR',
-                                minimumFractionDigits: 2
-                            }).format(item.amount);
-                            tdAmount.textContent = formattedAmt;
-                            
-                            tr.appendChild(tdDate);
-                            tr.appendChild(tdDesc);
-                            tr.appendChild(tdAmount);
-                            tbody.appendChild(tr);
-                        });
-                    }
-                    
-                    document.getElementById('drilldownLoading').classList.add('d-none');
-                    document.getElementById('drilldownContent').classList.remove('d-none');
-                })
-                .catch(error => {
-                    console.error('Error fetching details:', error);
-                    document.getElementById('drilldownTableBody').innerHTML = '<tr><td colspan="3" class="text-center text-danger py-4">Error loading data.</td></tr>';
-                    document.getElementById('drilldownLoading').classList.add('d-none');
-                    document.getElementById('drilldownContent').classList.remove('d-none');
-                });
-        }
-    </script>
 </body>
 </html>
